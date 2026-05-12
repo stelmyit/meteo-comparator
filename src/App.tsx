@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { ForecastChart } from "./components/ForecastChart.jsx";
+import { ForecastInsights } from "./components/ForecastInsights.jsx";
 import { ForecastTable } from "./components/ForecastTable.jsx";
+import { LocationCollections } from "./components/LocationCollections.jsx";
 import { LocationPicker } from "./components/LocationPicker.jsx";
 import { SummaryCards } from "./components/SummaryCards.jsx";
 import { getInitialStatus, languageOptions, translations } from "./i18n.js";
@@ -13,11 +15,22 @@ import {
   filterForecast,
   normalizeVisibleMetrics
 } from "./utils/forecast.js";
+import {
+  createStoredLocationFromForecast,
+  pushRecentLocation,
+  readRecentLocations,
+  readSavedLocations,
+  storedLocationToLocationResult,
+  toggleSavedLocation,
+  writeRecentLocations,
+  writeSavedLocations
+} from "./utils/locations.js";
 import { getMetricLabel } from "./utils/metrics.js";
 import { readUrlState, writeUrlState } from "./utils/urlState.js";
 import type { Language } from "./i18n.js";
 import type { ChartMetricKey } from "./types/chart.js";
 import type { ForecastComparison, LocationResult } from "./types/weather.js";
+import type { StoredLocation } from "./utils/locations.js";
 
 export function App() {
   const initialUrlState = useRef(readUrlState());
@@ -39,6 +52,8 @@ export function App() {
       ? initialUrlState.current.metric
       : (initialUrlState.current.metrics[0] ?? defaultVisibleMetrics[0] ?? "temperatureMax")
   );
+  const [savedLocations, setSavedLocations] = useState(() => readSavedLocations());
+  const [recentLocations, setRecentLocations] = useState(() => readRecentLocations());
   const [status, setStatus] = useState(getInitialStatus(language));
 
   const loadForecast = useCallback(
@@ -64,6 +79,11 @@ export function App() {
 
       try {
         const data = await fetchForecast(location, label);
+        const storedLocation = createStoredLocationFromForecast(data);
+        const nextRecentLocations = pushRecentLocation(readRecentLocations(), storedLocation);
+
+        writeRecentLocations(nextRecentLocations);
+        setRecentLocations(nextRecentLocations);
         setForecast(data);
         setStatus(
           data.failedSources.length
@@ -83,7 +103,7 @@ export function App() {
       const cleaned = nextQuery.trim();
 
       if (!cleaned) {
-        setStatus(language === "pl" ? "Podaj nazwę miasta." : "Enter a city name.");
+        setStatus(language === "pl" ? "Podaj nazwe miasta." : "Enter a city name.");
         return;
       }
 
@@ -144,6 +164,13 @@ export function App() {
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     void searchForLocations(query);
+  }
+
+  function handleCollectionLocationSelect(location: StoredLocation) {
+    const nextLocation = storedLocationToLocationResult(location);
+    setQuery(location.name);
+    setLocations([nextLocation]);
+    void loadForecast(nextLocation, { nextQuery: location.name });
   }
 
   function handleLanguageChange(event: React.ChangeEvent<HTMLSelectElement>) {
@@ -262,10 +289,32 @@ export function App() {
     });
   }
 
+  function handleToggleSavedLocation() {
+    if (!forecast) {
+      return;
+    }
+
+    const location = createStoredLocationFromForecast(forecast);
+    const nextSavedLocations = toggleSavedLocation(savedLocations, location);
+    setSavedLocations(nextSavedLocations);
+    writeSavedLocations(nextSavedLocations);
+  }
+
+  function handleRemoveSavedLocation(id: string) {
+    const nextSavedLocations = savedLocations.filter((location) => location.id !== id);
+    setSavedLocations(nextSavedLocations);
+    writeSavedLocations(nextSavedLocations);
+  }
+
   const visibleForecast = forecast
     ? filterForecast(forecast, selectedDay, selectedSourceIds)
     : null;
   const visibleSourceIds = visibleForecast?.sources.map((source) => source.id) ?? [];
+  const isCurrentLocationSaved = forecast
+    ? savedLocations.some(
+        (location) => location.id === createStoredLocationFromForecast(forecast).id
+      )
+    : false;
 
   return (
     <main className="app-shell">
@@ -273,6 +322,15 @@ export function App() {
         <div>
           <p className="eyebrow">Meteo Comparator</p>
           <h1>{t.appTitle}</h1>
+          {forecast ? (
+            <button
+              className="save-location-button"
+              onClick={handleToggleSavedLocation}
+              type="button"
+            >
+              {isCurrentLocationSaved ? t.savedLocation : t.saveLocation}
+            </button>
+          ) : null}
         </div>
         <div className="controls">
           <label className="language-select">
@@ -306,6 +364,13 @@ export function App() {
         {status}
       </section>
 
+      <LocationCollections
+        onRemoveSaved={handleRemoveSavedLocation}
+        onSelect={handleCollectionLocationSelect}
+        recentLocations={recentLocations}
+        savedLocations={savedLocations}
+        t={t}
+      />
       <LocationPicker locations={locations} onSelect={loadForecast} />
 
       {forecast && visibleForecast ? (
@@ -362,6 +427,12 @@ export function App() {
             days={visibleForecast.average}
             language={language}
             metrics={selectedMetrics}
+            t={t}
+          />
+          <ForecastInsights
+            forecast={visibleForecast}
+            language={language}
+            metric={selectedMetric}
             t={t}
           />
           <section className="chart-section" aria-label={t.chartTitle}>

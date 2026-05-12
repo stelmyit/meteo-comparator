@@ -29,7 +29,7 @@ describe("ForecastTable", () => {
       />
     );
 
-    expect(screen.getByRole("heading", { name: "Porównanie źródeł" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Porownanie zrodel" })).toBeInTheDocument();
     expect(screen.getByText("Średnia")).toBeInTheDocument();
     expect(screen.getByText("Open-Meteo")).toBeInTheDocument();
     expect(screen.getByText("21.0°C")).toBeInTheDocument();

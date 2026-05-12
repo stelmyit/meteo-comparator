@@ -1,5 +1,5 @@
-import type { LocationResult } from "../types/weather.js";
 import type { Language } from "../i18n.js";
+import type { LocationResult } from "../types/weather.js";
 
 export function formatLocation(
   location: Pick<LocationResult, "name" | "admin1" | "country">
@@ -29,14 +29,14 @@ export function formatSourceCount(count: number, language: Language): string {
   }
 
   if (count === 1) {
-    return "1 źródło";
+    return "1 zrodlo";
   }
 
   if (count > 1 && count < 5) {
-    return `${count} źródła`;
+    return `${count} zrodla`;
   }
 
-  return `${count} źródeł`;
+  return `${count} zrodel`;
 }
 
 export function formatShortDate(date: string, language: Language): string {

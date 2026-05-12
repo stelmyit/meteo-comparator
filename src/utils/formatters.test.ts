@@ -13,12 +13,12 @@ describe("formatters", () => {
     expect(
       formatLocation({
         name: "Warszawa",
-        admin1: "Województwo mazowieckie",
+        admin1: "Wojewodztwo mazowieckie",
         country: "Polska"
       })
-    ).toBe("Warszawa, Województwo mazowieckie, Polska");
+    ).toBe("Warszawa, Wojewodztwo mazowieckie, Polska");
 
-    expect(formatLocation({ name: "Gdańsk", country: "Polska" })).toBe("Gdańsk, Polska");
+    expect(formatLocation({ name: "Gdansk", country: "Polska" })).toBe("Gdansk, Polska");
   });
 
   it("formats numeric weather values", () => {
@@ -34,9 +34,9 @@ describe("formatters", () => {
   });
 
   it("formats Polish source count labels", () => {
-    expect(formatSourceCount(1, "pl")).toBe("1 źródło");
-    expect(formatSourceCount(2, "pl")).toBe("2 źródła");
-    expect(formatSourceCount(5, "pl")).toBe("5 źródeł");
+    expect(formatSourceCount(1, "pl")).toBe("1 zrodlo");
+    expect(formatSourceCount(2, "pl")).toBe("2 zrodla");
+    expect(formatSourceCount(5, "pl")).toBe("5 zrodel");
     expect(formatSourceCount(1, "en")).toBe("1 source");
     expect(formatSourceCount(2, "en")).toBe("2 sources");
   });

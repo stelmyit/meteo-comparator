@@ -8,6 +8,7 @@ import type { ForecastComparison, WeatherDay } from "./types/weather.js";
 describe("App", () => {
   beforeEach(() => {
     window.history.replaceState({}, "", "/");
+    window.localStorage.clear();
   });
 
   afterEach(() => {
@@ -22,7 +23,7 @@ describe("App", () => {
     expect(await screen.findAllByText("20.3°C")).not.toHaveLength(0);
     expect(screen.getAllByText("Open-Meteo")).not.toHaveLength(0);
     expect(screen.getAllByText("MET Norway")).not.toHaveLength(0);
-    expect(screen.getByText("2 źródła")).toBeInTheDocument();
+    expect(screen.getByText("2 zrodla")).toBeInTheDocument();
   });
 
   it("searches for another location from the form", async () => {
@@ -33,13 +34,13 @@ describe("App", () => {
 
     await screen.findAllByText("20.3°C");
     await user.clear(screen.getByRole("searchbox", { name: "Lokalizacja" }));
-    await user.type(screen.getByRole("searchbox", { name: "Lokalizacja" }), "Gdańsk");
+    await user.type(screen.getByRole("searchbox", { name: "Lokalizacja" }), "Gdansk");
     await user.click(screen.getByRole("button", { name: "Szukaj" }));
 
     await waitFor(() => {
-      expect(fetch).toHaveBeenCalledWith("/api/geocode?q=Gda%C5%84sk");
+      expect(fetch).toHaveBeenCalledWith("/api/geocode?q=Gdansk");
     });
-    expect(window.location.search).toContain("q=Gda%C5%84sk");
+    expect(window.location.search).toContain("q=Gdansk");
     expect(window.location.search).toContain("lat=52.22977");
   });
 
@@ -86,7 +87,7 @@ describe("App", () => {
 
     expect(new URLSearchParams(window.location.search).get("sources")).toBe("open-meteo");
     expect(screen.getByRole("checkbox", { name: "Open-Meteo" })).toBeDisabled();
-    expect(screen.getByText("1 źródło")).toBeInTheDocument();
+    expect(screen.getByText("1 zrodlo")).toBeInTheDocument();
 
     await user.click(screen.getByRole("checkbox", { name: "MET Norway" }));
 
@@ -124,7 +125,7 @@ describe("App", () => {
     await user.clear(screen.getByRole("searchbox", { name: "Lokalizacja" }));
     await user.click(screen.getByRole("button", { name: "Szukaj" }));
 
-    expect(screen.getByRole("status")).toHaveTextContent("Podaj nazwę miasta.");
+    expect(screen.getByRole("status")).toHaveTextContent("Podaj nazwe miasta.");
   });
 
   it("shows a no results status when geocoding returns an empty list", async () => {
@@ -147,12 +148,12 @@ describe("App", () => {
 
     render(<App />);
 
-    await screen.findByText("Nie znaleziono pasującej lokalizacji.");
+    await screen.findByText("Nie znaleziono pasujacej lokalizacji.");
     await user.clear(screen.getByRole("searchbox", { name: "Lokalizacja" }));
     await user.type(screen.getByRole("searchbox", { name: "Lokalizacja" }), "Atlantyda");
     await user.click(screen.getByRole("button", { name: "Szukaj" }));
 
-    expect(await screen.findByText("Nie znaleziono pasującej lokalizacji.")).toBeInTheDocument();
+    expect(await screen.findByText("Nie znaleziono pasujacej lokalizacji.")).toBeInTheDocument();
   });
 
   it("shows partial provider failures returned by the forecast endpoint", async () => {
@@ -191,7 +192,7 @@ describe("App", () => {
 
     render(<App />);
 
-    expect(await screen.findByText(/Część źródeł nie odpowiedziała/)).toBeInTheDocument();
+    expect(await screen.findByText(/Czesc zrodel nie odpowiedziala/)).toBeInTheDocument();
   });
 
   it("shows API errors when forecast loading fails", async () => {
@@ -212,12 +213,12 @@ describe("App", () => {
         });
       }
 
-      return jsonResponse({ error: "Żadne źródło nie odpowiedziało" }, false);
+      return jsonResponse({ error: "Zadne zrodlo nie odpowiedzialo" }, false);
     });
 
     render(<App />);
 
-    expect(await screen.findByText("Żadne źródło nie odpowiedziało")).toBeInTheDocument();
+    expect(await screen.findByText("Zadne zrodlo nie odpowiedzialo")).toBeInTheDocument();
   });
 
   it("switches visible labels to English", async () => {
@@ -227,7 +228,7 @@ describe("App", () => {
     render(<App />);
 
     await screen.findAllByText("20.3°C");
-    await user.selectOptions(screen.getByLabelText("Język"), "en");
+    await user.selectOptions(screen.getByLabelText("Jezyk"), "en");
 
     expect(
       await screen.findByRole("heading", { name: "Compare weather forecasts" })
@@ -274,6 +275,19 @@ describe("App", () => {
     );
     expect(screen.getByLabelText("Day")).toHaveValue("2026-05-11");
   });
+
+  it("saves the current location for quick reuse", async () => {
+    const user = userEvent.setup();
+    mockWeatherFetch();
+
+    render(<App />);
+
+    await screen.findAllByText("20.3°C");
+    await user.click(screen.getByRole("button", { name: "Zapisz miejsce" }));
+
+    expect(screen.getByRole("button", { name: "Miejsce zapisane" })).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: /Warszawa/ })).not.toHaveLength(0);
+  });
 });
 
 function mockWeatherFetch() {
@@ -285,8 +299,8 @@ function mockWeatherFetch() {
         results: [
           {
             id: 756135,
-            name: url.includes("Gda") ? "Gdańsk" : "Warszawa",
-            admin1: "Województwo mazowieckie",
+            name: url.includes("Gdansk") ? "Gdansk" : "Warszawa",
+            admin1: "Wojewodztwo mazowieckie",
             country: "Polska",
             latitude: 52.22977,
             longitude: 21.01178
