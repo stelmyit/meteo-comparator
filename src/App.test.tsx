@@ -85,6 +85,7 @@ describe("App", () => {
     await user.click(screen.getByRole("checkbox", { name: "MET Norway" }));
 
     expect(new URLSearchParams(window.location.search).get("sources")).toBe("open-meteo");
+    expect(screen.getByRole("checkbox", { name: "Open-Meteo" })).toBeDisabled();
     expect(screen.getByText("1 źródło")).toBeInTheDocument();
 
     await user.click(screen.getByRole("checkbox", { name: "MET Norway" }));

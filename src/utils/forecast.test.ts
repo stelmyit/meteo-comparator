@@ -16,6 +16,18 @@ describe("forecast utilities", () => {
     expect(result.average).toEqual([day("2026-05-11", 24, 61)]);
   });
 
+  it("falls back to available sources when a persisted source filter is stale", () => {
+    const forecast = comparison([
+      source("one", [day("2026-05-11", 20, 1)]),
+      source("two", [day("2026-05-11", 24, 61)])
+    ]);
+
+    const result = filterForecast(forecast, "", ["missing-provider"]);
+
+    expect(result.sources).toHaveLength(2);
+    expect(result.average[0]?.temperatureMax).toBe(22);
+  });
+
   it("averages numeric values and picks the most severe weather code", () => {
     const result = averageForecasts([
       source("one", [day("2026-05-11", 20, 1)]),
@@ -29,6 +41,15 @@ describe("forecast utilities", () => {
 
     expect(result[0]?.temperatureMax).toBe(22);
     expect(result[0]?.weatherCode).toBe(95);
+  });
+
+  it("ranks rain showers below snow when recomputing averages", () => {
+    const result = averageForecasts([
+      source("showers", [day("2026-05-11", 20, 80)]),
+      source("snow", [day("2026-05-11", 22, 71)])
+    ]);
+
+    expect(result[0]?.weatherCode).toBe(71);
   });
 
   it("normalizes empty metric selections to defaults", () => {

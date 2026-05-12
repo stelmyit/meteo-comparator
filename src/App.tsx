@@ -246,6 +246,10 @@ export function App() {
       ? currentSourceIds.filter((item) => item !== sourceId)
       : [...currentSourceIds, sourceId];
 
+    if (!nextSourceIds.length) {
+      return;
+    }
+
     setSelectedSourceIds(nextSourceIds);
     writeUrlState({
       day: selectedDay,
@@ -261,7 +265,7 @@ export function App() {
   const visibleForecast = forecast
     ? filterForecast(forecast, selectedDay, selectedSourceIds)
     : null;
-  const visibleSourceIds = selectedSourceIds ?? forecast?.sources.map((source) => source.id) ?? [];
+  const visibleSourceIds = visibleForecast?.sources.map((source) => source.id) ?? [];
 
   return (
     <main className="app-shell">
@@ -325,6 +329,9 @@ export function App() {
                   <label className="filter-option" key={source.id}>
                     <input
                       checked={visibleSourceIds.includes(source.id)}
+                      disabled={
+                        visibleSourceIds.length === 1 && visibleSourceIds.includes(source.id)
+                      }
                       onChange={() => handleSourceVisibilityChange(source.id)}
                       type="checkbox"
                     />

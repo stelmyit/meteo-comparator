@@ -9,7 +9,9 @@ describe("weatherCondition", () => {
     expect(getWeatherConditionKind(3)).toBe("cloudy");
     expect(getWeatherConditionKind(45)).toBe("fog");
     expect(getWeatherConditionKind(61)).toBe("rain");
+    expect(getWeatherConditionKind(80)).toBe("rain");
     expect(getWeatherConditionKind(73)).toBe("snow");
+    expect(getWeatherConditionKind(85)).toBe("snow");
     expect(getWeatherConditionKind(95)).toBe("storm");
   });
 

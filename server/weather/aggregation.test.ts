@@ -90,6 +90,15 @@ describe("weather aggregation", () => {
 
     expect(result[0]?.weatherCode).toBe(95);
   });
+
+  it("ranks rain showers below snow when selecting dominant weather", () => {
+    const result = averageForecasts([
+      source("showers", [weatherCodeDay(80)]),
+      source("snow", [weatherCodeDay(71)])
+    ]);
+
+    expect(result[0]?.weatherCode).toBe(71);
+  });
 });
 
 function source(id: string, days: WeatherDay[]): WeatherSource {

@@ -87,11 +87,11 @@ function weatherSeverity(code: number): number {
     return 6;
   }
 
-  if (code >= 71) {
+  if ((code >= 71 && code <= 77) || code === 85 || code === 86) {
     return 5;
   }
 
-  if (code >= 51) {
+  if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82)) {
     return 4;
   }
 
