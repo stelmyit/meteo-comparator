@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { DataActions } from "./components/DataActions.jsx";
 import { ForecastChart } from "./components/ForecastChart.jsx";
 import { ForecastInsights } from "./components/ForecastInsights.jsx";
 import { ForecastTable } from "./components/ForecastTable.jsx";
@@ -10,6 +11,11 @@ import { getInitialStatus, languageOptions, translations } from "./i18n.js";
 import { fetchForecast, fetchLocations } from "./services/weatherApi.js";
 import { chartMetricKeys } from "./types/chart.js";
 import { formatLocation, formatShortDate, formatSourceCount } from "./utils/formatters.js";
+import {
+  buildForecastCsv,
+  buildForecastExportPayload,
+  getExportFileBaseName
+} from "./utils/export.js";
 import {
   defaultVisibleMetrics,
   filterForecast,
@@ -306,6 +312,43 @@ export function App() {
     writeSavedLocations(nextSavedLocations);
   }
 
+  async function handleCopyLink() {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setStatus(t.copiedLink);
+    } catch {
+      setStatus(t.copyLinkError);
+    }
+  }
+
+  function handleExportCsv() {
+    if (!visibleForecast) {
+      return;
+    }
+
+    downloadTextFile(
+      buildForecastCsv(visibleForecast, selectedMetrics, selectedDay),
+      `${getExportFileBaseName(visibleForecast, selectedDay)}.csv`,
+      "text/csv;charset=utf-8"
+    );
+  }
+
+  function handleExportJson() {
+    if (!visibleForecast) {
+      return;
+    }
+
+    downloadTextFile(
+      JSON.stringify(
+        buildForecastExportPayload(visibleForecast, selectedMetrics, selectedDay),
+        null,
+        2
+      ),
+      `${getExportFileBaseName(visibleForecast, selectedDay)}.json`,
+      "application/json;charset=utf-8"
+    );
+  }
+
   const visibleForecast = forecast
     ? filterForecast(forecast, selectedDay, selectedSourceIds)
     : null;
@@ -435,6 +478,12 @@ export function App() {
             metric={selectedMetric}
             t={t}
           />
+          <DataActions
+            onCopyLink={handleCopyLink}
+            onExportCsv={handleExportCsv}
+            onExportJson={handleExportJson}
+            t={t}
+          />
           <section className="chart-section" aria-label={t.chartTitle}>
             <div className="section-heading">
               <h2>{t.chartTitle}</h2>
@@ -481,4 +530,15 @@ function currentForecastLocation(forecast: ForecastComparison | null): LocationR
         longitude: forecast.location.longitude
       }
     : null;
+}
+
+function downloadTextFile(content: string, fileName: string, mimeType: string) {
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.download = fileName;
+  link.click();
+  URL.revokeObjectURL(url);
 }

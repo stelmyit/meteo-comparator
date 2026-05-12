@@ -6,15 +6,21 @@ export type Translations = {
   calmestDay: string;
   chartTitle: string;
   condition: string;
+  copiedLink: string;
+  copyLink: string;
+  copyLinkError: string;
   confidenceHint: string;
   confidenceHigh: string;
   confidenceLow: string;
   confidenceMedium: string;
   confidenceTitle: string;
+  dataActions: string;
   dailySum: string;
   dataFilters: string;
   day: string;
   driestDay: string;
+  exportCsv: string;
+  exportJson: string;
   forecastInsights: string;
   language: string;
   location: string;
@@ -58,15 +64,21 @@ export const translations: Record<Language, Translations> = {
     calmestDay: "Najspokojniejszy dzien",
     chartTitle: "Wykres",
     condition: "Warunki",
+    copiedLink: "Link skopiowany.",
+    copyLink: "Kopiuj link",
+    copyLinkError: "Nie udalo sie skopiowac linku.",
     confidenceHint: "Na podstawie roznic miedzy modelami",
     confidenceHigh: "Wysoka zgodnosc",
     confidenceLow: "Niska zgodnosc",
     confidenceMedium: "Srednia zgodnosc",
     confidenceTitle: "Pewnosc prognozy",
+    dataActions: "Udostepnianie i eksport",
     dailySum: "suma dzienna",
     dataFilters: "Filtry danych",
     day: "Dzien",
     driestDay: "Najsuchszy dzien",
+    exportCsv: "Eksport CSV",
+    exportJson: "Eksport JSON",
     forecastInsights: "Szybkie wnioski",
     language: "Jezyk",
     location: "Lokalizacja",
@@ -108,15 +120,21 @@ export const translations: Record<Language, Translations> = {
     calmestDay: "Calmest day",
     chartTitle: "Chart",
     condition: "Condition",
+    copiedLink: "Link copied.",
+    copyLink: "Copy link",
+    copyLinkError: "Could not copy the link.",
     confidenceHint: "Based on how closely the models match",
     confidenceHigh: "High agreement",
     confidenceLow: "Low agreement",
     confidenceMedium: "Mixed agreement",
     confidenceTitle: "Forecast confidence",
+    dataActions: "Sharing and export",
     dailySum: "daily total",
     dataFilters: "Data filters",
     day: "Day",
     driestDay: "Driest day",
+    exportCsv: "Export CSV",
+    exportJson: "Export JSON",
     forecastInsights: "Quick insights",
     language: "Language",
     location: "Location",

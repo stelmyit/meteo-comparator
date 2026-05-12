@@ -295,6 +295,34 @@ h2 {
   margin-bottom: 16px;
 }
 
+.data-actions {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.84);
+  padding: 18px;
+  margin-bottom: 16px;
+}
+
+.data-actions-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.data-actions-row button {
+  border: 1px solid #b7d5ce;
+  border-radius: 6px;
+  background: #eef7f4;
+  color: var(--accent-strong);
+  cursor: pointer;
+  font-weight: 800;
+  padding: 10px 14px;
+}
+
+.data-actions-row button:hover {
+  background: #d9efea;
+}
+
 .metric-card,
 .chart-section,
 .table-section {

@@ -288,6 +288,26 @@ describe("App", () => {
     expect(screen.getByRole("button", { name: "Miejsce zapisane" })).toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: /Warszawa/ })).not.toHaveLength(0);
   });
+
+  it("copies the current share link", async () => {
+    const user = userEvent.setup();
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    mockWeatherFetch();
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText }
+    });
+
+    render(<App />);
+
+    await screen.findAllByText("20.3°C");
+    await user.click(screen.getByRole("button", { name: "Kopiuj link" }));
+
+    expect(writeText).toHaveBeenCalledWith(
+      expect.stringContaining("http://localhost:3000/?lang=pl&q=Warszawa")
+    );
+    expect(screen.getByRole("status")).toHaveTextContent("Link skopiowany.");
+  });
 });
 
 function mockWeatherFetch() {
