@@ -8,14 +8,19 @@ describe("SummaryCards", () => {
   it("renders averaged values for the first forecast day", () => {
     render(
       <SummaryCards
+        language="pl"
+        metrics={["temperatureMax", "temperatureMin", "precipitation", "windMax"]}
         t={translations.pl}
         days={[
           {
+            apparentTemperatureMax: 21.32,
+            apparentTemperatureMin: 10.12,
             date: "2026-05-11",
             temperatureMax: 20.32,
             temperatureMin: 11.12,
             precipitation: 7.08,
             precipitationProbability: 50,
+            weatherCode: 61,
             windMax: 18.44
           }
         ]}
@@ -29,7 +34,14 @@ describe("SummaryCards", () => {
   });
 
   it("renders placeholders when there is no forecast day yet", () => {
-    render(<SummaryCards days={[]} t={translations.en} />);
+    render(
+      <SummaryCards
+        days={[]}
+        language="en"
+        metrics={["temperatureMax", "temperatureMin", "precipitation", "windMax"]}
+        t={translations.en}
+      />
+    );
 
     expect(screen.getAllByText("-")).toHaveLength(4);
   });

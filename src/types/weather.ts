@@ -1,9 +1,12 @@
 export type WeatherDay = {
   date: string;
+  apparentTemperatureMax: number | null;
+  apparentTemperatureMin: number | null;
   temperatureMax: number | null;
   temperatureMin: number | null;
   precipitation: number | null;
   precipitationProbability: number | null;
+  weatherCode: number | null;
   windMax: number | null;
 };
 

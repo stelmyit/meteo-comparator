@@ -1,5 +1,10 @@
 import { averageForecasts } from "./aggregation.js";
-import { getMetNorwayForecast, getOpenMeteoForecast } from "./providers.js";
+import {
+  getDwdIconForecast,
+  getEcmwfForecast,
+  getMetNorwayForecast,
+  getOpenMeteoForecast
+} from "./providers.js";
 import type { ForecastComparison } from "./types.js";
 
 type ForecastComparisonInput = {
@@ -15,6 +20,8 @@ export async function getForecastComparison({
 }: ForecastComparisonInput): Promise<ForecastComparison> {
   const providers = await Promise.allSettled([
     getOpenMeteoForecast(latitude, longitude),
+    getDwdIconForecast(latitude, longitude),
+    getEcmwfForecast(latitude, longitude),
     getMetNorwayForecast(latitude, longitude)
   ]);
 

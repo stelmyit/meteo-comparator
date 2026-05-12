@@ -1,5 +1,5 @@
 import type { Language } from "../i18n.js";
-import { isChartMetricKey } from "../types/chart.js";
+import { chartMetricKeys, isChartMetricKey } from "../types/chart.js";
 import type { ChartMetricKey } from "../types/chart.js";
 import type { LocationResult } from "../types/weather.js";
 
@@ -7,8 +7,10 @@ export type UrlState = {
   day: string;
   language: Language;
   metric: ChartMetricKey;
+  metrics: ChartMetricKey[];
   query: string;
   selectedLocation: LocationResult | null;
+  sourceIds: string[] | null;
 };
 
 const defaultQuery = "Warszawa";
@@ -23,11 +25,14 @@ export function readUrlState(): UrlState {
   const label = params.get("label")?.trim();
   const day = params.get("day")?.trim() ?? "";
   const metric = params.get("metric");
+  const metrics = parseMetrics(params.get("metrics"));
+  const sourceIds = params.has("sources") ? parseList(params.get("sources")) : null;
 
   return {
     day,
     language,
     metric: isChartMetricKey(metric) ? metric : defaultMetric,
+    metrics,
     query,
     selectedLocation:
       Number.isFinite(latitude) && Number.isFinite(longitude) && label
@@ -37,7 +42,8 @@ export function readUrlState(): UrlState {
             latitude,
             longitude
           }
-        : null
+        : null,
+    sourceIds
   };
 }
 
@@ -45,6 +51,8 @@ export function writeUrlState({
   language,
   location,
   metric,
+  metrics,
+  sourceIds,
   day,
   query
 }: {
@@ -52,12 +60,16 @@ export function writeUrlState({
   language: Language;
   location?: LocationResult | null;
   metric?: ChartMetricKey;
+  metrics?: ChartMetricKey[];
   query: string;
+  sourceIds?: string[] | null;
 }): void {
   const url = new URL(window.location.href);
   url.searchParams.set("lang", language);
   url.searchParams.set("q", query.trim() || defaultQuery);
   url.searchParams.set("metric", metric ?? defaultMetric);
+  writeListParam(url, "metrics", metrics ?? [...chartMetricKeys]);
+  writeListParam(url, "sources", sourceIds);
 
   if (day) {
     url.searchParams.set("day", day);
@@ -80,4 +92,26 @@ export function writeUrlState({
 
 export function formatUrlLocationLabel(location: LocationResult): string {
   return [location.name, location.admin1, location.country].filter(Boolean).join(", ");
+}
+
+function parseMetrics(value: string | null): ChartMetricKey[] {
+  const metrics = parseList(value).filter(isChartMetricKey);
+  return metrics.length ? metrics : [...chartMetricKeys];
+}
+
+function parseList(value: string | null): string[] {
+  return value
+    ? value
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean)
+    : [];
+}
+
+function writeListParam(url: URL, key: string, values: string[] | null | undefined): void {
+  if (values?.length) {
+    url.searchParams.set(key, values.join(","));
+  } else {
+    url.searchParams.delete(key);
+  }
 }

@@ -8,29 +8,38 @@ describe("weather aggregation", () => {
     const result = averageForecasts([
       source("one", [
         {
+          apparentTemperatureMax: 21,
+          apparentTemperatureMin: 9,
           date: "2026-05-11",
           temperatureMax: 20,
           temperatureMin: 10,
           precipitation: 2,
           precipitationProbability: 40,
+          weatherCode: 1,
           windMax: 12
         },
         {
+          apparentTemperatureMax: 19,
+          apparentTemperatureMin: 7,
           date: "2026-05-12",
           temperatureMax: 18,
           temperatureMin: 8,
           precipitation: 0,
           precipitationProbability: null,
+          weatherCode: 0,
           windMax: 10
         }
       ]),
       source("two", [
         {
+          apparentTemperatureMax: 23,
+          apparentTemperatureMin: null,
           date: "2026-05-11",
           temperatureMax: 22,
           temperatureMin: null,
           precipitation: 4,
           precipitationProbability: 60,
+          weatherCode: 61,
           windMax: 16
         }
       ])
@@ -38,19 +47,25 @@ describe("weather aggregation", () => {
 
     expect(result).toEqual([
       {
+        apparentTemperatureMax: 22,
+        apparentTemperatureMin: 9,
         date: "2026-05-11",
         temperatureMax: 21,
         temperatureMin: 10,
         precipitation: 3,
         precipitationProbability: 50,
+        weatherCode: 61,
         windMax: 14
       },
       {
+        apparentTemperatureMax: 19,
+        apparentTemperatureMin: 7,
         date: "2026-05-12",
         temperatureMax: 18,
         temperatureMin: 8,
         precipitation: 0,
         precipitationProbability: null,
+        weatherCode: 0,
         windMax: 10
       }
     ]);
@@ -61,6 +76,29 @@ describe("weather aggregation", () => {
     expect(numberOrNull(5.04)).toBe(5);
     expect(numberOrNull(undefined)).toBeNull();
   });
+
+  it("chooses the most severe weather code for averaged days", () => {
+    const result = averageForecasts([
+      source("clear", [weatherCodeDay(0)]),
+      source("partly", [weatherCodeDay(1)]),
+      source("cloudy", [weatherCodeDay(3)]),
+      source("fog", [weatherCodeDay(45)]),
+      source("rain", [weatherCodeDay(51)]),
+      source("snow", [weatherCodeDay(71)]),
+      source("storm", [weatherCodeDay(95)])
+    ]);
+
+    expect(result[0]?.weatherCode).toBe(95);
+  });
+
+  it("ranks rain showers below snow when selecting dominant weather", () => {
+    const result = averageForecasts([
+      source("showers", [weatherCodeDay(80)]),
+      source("snow", [weatherCodeDay(71)])
+    ]);
+
+    expect(result[0]?.weatherCode).toBe(71);
+  });
 });
 
 function source(id: string, days: WeatherDay[]): WeatherSource {
@@ -69,5 +107,19 @@ function source(id: string, days: WeatherDay[]): WeatherSource {
     name: id,
     updatedAt: "2026-05-11T10:00:00Z",
     days
+  };
+}
+
+function weatherCodeDay(weatherCode: number): WeatherDay {
+  return {
+    apparentTemperatureMax: 20,
+    apparentTemperatureMin: 10,
+    date: "2026-05-11",
+    precipitation: 0,
+    precipitationProbability: null,
+    temperatureMax: 20,
+    temperatureMin: 10,
+    weatherCode,
+    windMax: 10
   };
 }

@@ -10,6 +10,7 @@ describe("ForecastTable", () => {
     render(
       <ForecastTable
         language="pl"
+        metrics={["temperatureMax", "temperatureMin", "precipitation", "windMax"]}
         t={translations.pl}
         forecast={{
           location: { label: "Warszawa", latitude: 52.2, longitude: 21 },
@@ -31,13 +32,15 @@ describe("ForecastTable", () => {
     expect(screen.getByRole("heading", { name: "Porównanie źródeł" })).toBeInTheDocument();
     expect(screen.getByText("Średnia")).toBeInTheDocument();
     expect(screen.getByText("Open-Meteo")).toBeInTheDocument();
-    expect(screen.getByText((text) => text.includes("21.0°C / 11.0°C"))).toBeInTheDocument();
+    expect(screen.getByText("21.0°C")).toBeInTheDocument();
+    expect(screen.getByText("11.0°C")).toBeInTheDocument();
   });
 
   it("renders English labels when selected", () => {
     render(
       <ForecastTable
         language="en"
+        metrics={["temperatureMax", "temperatureMin", "precipitation", "windMax"]}
         t={translations.en}
         forecast={{
           location: { label: "Warsaw", latitude: 52.2, longitude: 21 },
@@ -62,11 +65,14 @@ function day(
   windMax: number
 ): WeatherDay {
   return {
+    apparentTemperatureMax: temperatureMax + 1,
+    apparentTemperatureMin: temperatureMin - 1,
     date,
     temperatureMax,
     temperatureMin,
     precipitation,
     precipitationProbability: 40,
+    weatherCode: precipitation > 0 ? 61 : 1,
     windMax
   };
 }

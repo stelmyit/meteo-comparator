@@ -66,13 +66,17 @@ function canvasContext() {
 }
 
 function day(date: string, overrides: Partial<Omit<WeatherDay, "date">>): WeatherDay {
-  return {
+  const base: WeatherDay = {
+    apparentTemperatureMax: null,
+    apparentTemperatureMin: null,
     date,
     temperatureMax: null,
     temperatureMin: null,
     precipitation: null,
     precipitationProbability: null,
-    windMax: null,
-    ...overrides
+    weatherCode: null,
+    windMax: null
   };
+
+  return { ...base, ...overrides };
 }

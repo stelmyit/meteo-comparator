@@ -23,6 +23,12 @@ const chartMetricConfig: Record<ChartMetricKey, ChartMetricConfig> = {
     label: "minimum temperature",
     unit: "°C"
   },
+  apparentTemperatureMax: {
+    color: "#c2410c",
+    floorAtZero: false,
+    label: "apparent temperature",
+    unit: "°C"
+  },
   precipitation: {
     color: "#0284c7",
     floorAtZero: true,

@@ -1,9 +1,12 @@
 export type WeatherDay = {
   date: string;
+  apparentTemperatureMax: number | null;
+  apparentTemperatureMin: number | null;
   temperatureMax: number | null;
   temperatureMin: number | null;
   precipitation: number | null;
   precipitationProbability: number | null;
+  weatherCode: number | null;
   windMax: number | null;
 };
 
@@ -43,11 +46,15 @@ export type OpenMeteoGeocodingResponse = {
 export type OpenMeteoForecastResponse = {
   daily: {
     time: string[];
+    apparent_temperature_max?: number[];
+    apparent_temperature_min?: number[];
     temperature_2m_max: number[];
     temperature_2m_min: number[];
     precipitation_sum: number[];
-    precipitation_probability_max: number[];
-    windspeed_10m_max: number[];
+    precipitation_probability_max?: number[];
+    weather_code?: number[];
+    wind_speed_10m_max?: number[];
+    windspeed_10m_max?: number[];
   };
 };
 
@@ -70,11 +77,17 @@ export type MetNorwayPoint = {
       };
     };
     next_1_hours?: {
+      summary?: {
+        symbol_code: string;
+      };
       details: {
         precipitation_amount: number;
       };
     };
     next_6_hours?: {
+      summary?: {
+        symbol_code: string;
+      };
       details: {
         precipitation_amount: number;
       };

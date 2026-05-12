@@ -1,6 +1,7 @@
 export const chartMetricKeys = [
   "temperatureMax",
   "temperatureMin",
+  "apparentTemperatureMax",
   "precipitation",
   "precipitationProbability",
   "windMax"

@@ -1,165 +1,204 @@
 # Meteo Comparator
 
-Meteo Comparator to aplikacja do porównywania prognoz pogody z publicznych API. Użytkownik wybiera lokalizację, aplikacja pobiera prognozy z kilku źródeł, normalizuje dane do wspólnego formatu i pokazuje zarówno wartości z poszczególnych dostawców, jak i uśrednioną prognozę.
+Meteo Comparator is a React and TypeScript application for comparing public weather
+forecasts. A user selects a location, the backend fetches forecasts from multiple
+public providers, normalizes them into a shared daily format, and the UI shows both
+source-level values and averaged results.
 
-## Perspektywa biznesowa
+## Documentation Tabs
+
+[Business Documentation](#business-documentation) |
+[Technical Requirements](#technical-requirements) |
+[Technical Documentation](#technical-documentation) |
+[CICD](#cicd)
+
+## Business Documentation
 
 ### Problem
 
-Prognozy pogody z różnych serwisów potrafią się zauważalnie różnić, szczególnie dla opadów, temperatur minimalnych i wiatru. Osoba planująca podróż, wydarzenie outdoorowe, pracę terenową albo logistykę często musi ręcznie sprawdzać kilka stron i samodzielnie wyciągać wnioski.
+Weather forecasts can differ noticeably between providers, especially for
+precipitation, minimum temperatures, apparent temperature, and wind. Users who plan
+travel, outdoor events, field work, or logistics often need to check several
+websites and manually compare the differences.
 
-### Rozwiązanie
+### Solution
 
-Aplikacja agreguje prognozy z kilku publicznych źródeł i prezentuje:
+The application aggregates forecasts from several public sources and presents:
 
-- zbiorczą prognozę dzienną dla wybranej lokalizacji,
-- średnią z dostępnych źródeł,
-- tabelę różnic pomiędzy dostawcami,
-- szybkie metryki na dziś: temperatura maksymalna, temperatura minimalna, opad i wiatr.
+- daily forecasts for the selected location,
+- an averaged forecast calculated from available sources,
+- per-provider values in a comparison table,
+- chart tabs for temperature, apparent temperature, precipitation probability,
+  precipitation volume, and wind,
+- filters for visible providers and metrics,
+- weather condition icons derived from provider weather codes,
+- shareable URLs that preserve language, query, location, selected day, metric,
+  visible metrics, and visible sources.
 
-### Wartość
+### Value
 
-- krótszy czas porównywania prognoz,
-- większa odporność na odchylenia pojedynczego modelu pogodowego,
-- przejrzyste dane dla osób nietechnicznych,
-- prosta baza pod alerty, rekomendacje i kolejne źródła API.
+- Reduces the time needed to compare weather forecasts.
+- Makes the forecast more resilient to outliers from a single provider.
+- Presents weather data in a readable form for non-technical users.
+- Creates a foundation for alerts, recommendations, and future provider
+  integrations.
 
-### Obecne źródła danych
+### Current Data Sources
 
-- Open-Meteo: geokodowanie i dzienna prognoza pogody,
-- MET Norway: godzinowa prognoza normalizowana do danych dziennych.
+- Open-Meteo Best Match for geocoding and daily forecasts.
+- DWD ICON through Open-Meteo model endpoints.
+- ECMWF IFS through Open-Meteo model endpoints.
+- MET Norway compact forecast, normalized from hourly timeseries to daily values.
 
-## Perspektywa techniczna
+## Technical Requirements
 
-### Architektura
+### Runtime
 
-Projekt jest podzielony na dwie warstwy:
-
-- `src/` - frontend React + TypeScript uruchamiany przez Vite,
-- `server/` - lekki backend Node.js + TypeScript, który ukrywa integracje z API i normalizuje dane.
-
-Najważniejsze moduły:
-
-- `server/weather/geocoding.ts` - wyszukiwanie lokalizacji,
-- `server/weather/providers.ts` - integracje i normalizacja dostawców pogody,
-- `server/weather/aggregation.ts` - liczenie średnich prognoz,
-- `server/weather/service.ts` - orkiestracja źródeł i obsługa częściowych awarii,
-- `server/weather/types.ts` - kontrakty danych pogodowych po stronie backendu,
-- `src/services/weatherApi.ts` - klient API dla frontendu,
-- `src/types/weather.ts` - kontrakty danych używane przez UI,
-- `src/components/` - komponenty React UI,
-- `src/utils/` - formatowanie i rysowanie wykresu.
-
-### Wymagania
-
-- Node.js 18 lub nowszy,
+- Node.js 18 or newer.
 - npm.
 
-### Instalacja
+### Local Setup
 
 ```bash
 npm install
 ```
 
-### Uruchomienie lokalne
-
-W jednym terminalu uruchom API:
+Run the API in one terminal:
 
 ```bash
 npm run dev:api
 ```
 
-W drugim terminalu uruchom frontend:
+Run the frontend in another terminal:
 
 ```bash
 npm run dev
 ```
 
-Frontend działa domyślnie pod adresem `http://localhost:5173`, a zapytania `/api` są proxy do `http://localhost:3000`.
+The frontend runs on `http://localhost:5173` by default. Vite proxies `/api`
+requests to `http://localhost:3000`.
 
-### Build produkcyjny
+### Production Build
 
 ```bash
 npm run build
 npm start
 ```
 
-Po buildzie frontend trafia do `dist`, a backend TypeScript jest kompilowany do `dist-server`. Komenda `npm start` uruchamia skompilowany serwer.
+The frontend is built into `dist`, and the backend is compiled into
+`dist-server`. `npm start` runs the compiled backend.
 
-## Jakość
-
-### Testy
-
-```bash
-npm test
-```
-
-Testy są uruchamiane przez Vitest z coverage. Minimalne wymagane pokrycie to 90% dla linii, instrukcji, funkcji i gałęzi.
-
-### Linter
+### Quality Gates
 
 ```bash
-npm run lint
-```
-
-### Typecheck
-
-```bash
-npm run typecheck
-```
-
-Komenda sprawdza typy frontendu oraz backendu.
-
-### Formatowanie
-
-```bash
-npm run format
 npm run format:check
+npm run lint
+npm run typecheck
+npm test
+npm run build
 ```
 
-### Pre-commit
+Tests use Vitest with V8 coverage. The required minimum coverage is 90% for
+statements, branches, functions, and lines.
 
-Projekt używa Husky i lint-staged. Przed commitem uruchamiane są:
+## Technical Documentation
 
-- Prettier dla plików `js`, `jsx`, `json`, `css`, `md`, `yml`, `yaml`,
-- ESLint z autofixem dla plików `js` i `jsx`.
+### Architecture
 
-Hook jest instalowany przez skrypt:
+The project is split into two layers:
 
-```bash
-npm run prepare
-```
+- `src/` contains the React and TypeScript frontend powered by Vite.
+- `server/` contains a lightweight Node.js and TypeScript backend that hides
+  external API integrations and normalizes weather data.
 
-## CI/CD
+### Backend Modules
 
-Pipeline GitHub Actions jest w `.github/workflows/pr-checks.yml`. Przy każdym pull requeście do `main` lub `master` wykonywane są:
+- `server/index.ts` exposes API routes and serves the production frontend.
+- `server/weather/geocoding.ts` searches locations.
+- `server/weather/providers.ts` integrates weather providers and normalizes
+  external responses.
+- `server/weather/aggregation.ts` calculates averaged daily forecasts.
+- `server/weather/service.ts` orchestrates providers and handles partial
+  failures.
+- `server/weather/types.ts` defines backend weather contracts.
 
-- instalacja zależności przez `npm ci`,
-- sprawdzenie formatowania,
-- linter,
-- typecheck TypeScript,
-- build aplikacji,
-- testy z minimalnym coverage 90%.
+### Frontend Modules
 
-## Rozszerzanie źródeł pogody
+- `src/App.tsx` owns the main application state, URL synchronization, filters,
+  and data loading.
+- `src/services/weatherApi.ts` wraps API requests for the frontend.
+- `src/components/` contains the chart, table, location picker, summary cards,
+  and weather icon components.
+- `src/types/` defines frontend data contracts.
+- `src/utils/` contains chart preparation, forecast filtering, URL state,
+  formatters, metric metadata, and weather condition mapping.
 
-Nowego dostawcę najlepiej dodać jako funkcję w `server/weather/providers.ts`, która zwraca dane zgodne z typem `WeatherSource`:
+### URL State
 
-```js
+The app stores the current search state in query parameters so a link can be
+shared or restored after restart:
+
+- `lang` for UI language,
+- `q` for search query,
+- `lat`, `lon`, and `label` for the selected location,
+- `day` for the selected forecast day,
+- `metric` for the active chart tab,
+- `metrics` for visible metric filters,
+- `sources` for visible data source filters.
+
+### Adding A Weather Provider
+
+Add a provider function in `server/weather/providers.ts` that returns a
+`WeatherSource`:
+
+```ts
 {
   id: "provider-id",
   name: "Provider name",
-  updatedAt: "2026-05-11T10:00:00Z",
+  updatedAt: "2026-05-12T10:00:00Z",
   days: [
     {
-      date: "2026-05-11",
+      date: "2026-05-12",
       temperatureMax: 20.1,
       temperatureMin: 10.2,
+      apparentTemperatureMax: 19.4,
+      apparentTemperatureMin: 8.8,
       precipitation: 1.4,
+      precipitationProbability: 30,
+      weatherCode: 2,
       windMax: 18.6
     }
   ]
 }
 ```
 
-Następnie trzeba dopiąć funkcję w `server/weather/service.ts`. Agregacja zadziała automatycznie, o ile pola dzienne pozostaną zgodne z tym kontraktem.
+Then register the provider in `server/weather/service.ts`. Aggregation works
+automatically as long as daily fields match the shared contract.
+
+## CICD
+
+### Pull Request Pipeline
+
+GitHub Actions configuration lives in `.github/workflows/pr-checks.yml`.
+For every pull request to `main` or `master`, the pipeline runs:
+
+- dependency installation with `npm ci`,
+- Prettier check,
+- ESLint,
+- TypeScript typecheck,
+- production build,
+- unit tests with minimum 90% coverage.
+
+### Pre-Commit Checks
+
+The project uses Husky and lint-staged. Before each commit:
+
+- Prettier formats staged `js`, `jsx`, `ts`, `tsx`, `json`, `css`, `md`, `yml`,
+  and `yaml` files,
+- ESLint runs with autofix for staged `js`, `jsx`, `ts`, and `tsx` files.
+
+Install hooks with:
+
+```bash
+npm run prepare
+```

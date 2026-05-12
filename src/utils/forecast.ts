@@ -1,18 +1,56 @@
-import type { WeatherDay, WeatherSource } from "./types.js";
+import { chartMetricKeys } from "../types/chart.js";
+import type { ChartMetricKey } from "../types/chart.js";
+import type { ForecastComparison, WeatherDay } from "../types/weather.js";
 
 type AverageBucket = {
   apparentTemperatureMax: number[];
   apparentTemperatureMin: number[];
   date: string;
-  temperatureMax: number[];
-  temperatureMin: number[];
   precipitation: number[];
   precipitationProbability: number[];
+  temperatureMax: number[];
+  temperatureMin: number[];
   weatherCode: number[];
   windMax: number[];
 };
 
-export function averageForecasts(sources: WeatherSource[]): WeatherDay[] {
+export const defaultVisibleMetrics: ChartMetricKey[] = [...chartMetricKeys];
+
+export function filterForecast(
+  forecast: ForecastComparison,
+  selectedDay: string,
+  selectedSourceIds: string[] | null
+): ForecastComparison {
+  const matchingSources = selectedSourceIds
+    ? forecast.sources.filter((source) => selectedSourceIds.includes(source.id))
+    : forecast.sources;
+  const sources = matchingSources.length ? matchingSources : forecast.sources;
+  const scopedForecast = {
+    ...forecast,
+    average: averageForecasts(sources),
+    sources
+  };
+
+  if (!selectedDay) {
+    return scopedForecast;
+  }
+
+  return {
+    ...scopedForecast,
+    average: scopedForecast.average.filter((day) => day.date === selectedDay),
+    sources: scopedForecast.sources.map((source) => ({
+      ...source,
+      days: source.days.filter((day) => day.date === selectedDay)
+    }))
+  };
+}
+
+export function normalizeVisibleMetrics(metrics: ChartMetricKey[]): ChartMetricKey[] {
+  const uniqueMetrics = chartMetricKeys.filter((metric) => metrics.includes(metric));
+  return uniqueMetrics.length ? uniqueMetrics : defaultVisibleMetrics;
+}
+
+export function averageForecasts(sources: ForecastComparison["sources"]): WeatherDay[] {
   const byDate = new Map<string, AverageBucket>();
 
   for (const source of sources) {
@@ -21,20 +59,20 @@ export function averageForecasts(sources: WeatherSource[]): WeatherDay[] {
         apparentTemperatureMax: [],
         apparentTemperatureMin: [],
         date: day.date,
-        temperatureMax: [],
-        temperatureMin: [],
         precipitation: [],
         precipitationProbability: [],
+        temperatureMax: [],
+        temperatureMin: [],
         weatherCode: [],
         windMax: []
       };
 
       pushIfNumber(bucket.apparentTemperatureMax, day.apparentTemperatureMax);
       pushIfNumber(bucket.apparentTemperatureMin, day.apparentTemperatureMin);
-      pushIfNumber(bucket.temperatureMax, day.temperatureMax);
-      pushIfNumber(bucket.temperatureMin, day.temperatureMin);
       pushIfNumber(bucket.precipitation, day.precipitation);
       pushIfNumber(bucket.precipitationProbability, day.precipitationProbability);
+      pushIfNumber(bucket.temperatureMax, day.temperatureMax);
+      pushIfNumber(bucket.temperatureMin, day.temperatureMin);
       pushIfNumber(bucket.weatherCode, day.weatherCode);
       pushIfNumber(bucket.windMax, day.windMax);
       byDate.set(day.date, bucket);
@@ -45,21 +83,13 @@ export function averageForecasts(sources: WeatherSource[]): WeatherDay[] {
     apparentTemperatureMax: average(bucket.apparentTemperatureMax),
     apparentTemperatureMin: average(bucket.apparentTemperatureMin),
     date: bucket.date,
-    temperatureMax: average(bucket.temperatureMax),
-    temperatureMin: average(bucket.temperatureMin),
     precipitation: average(bucket.precipitation),
     precipitationProbability: average(bucket.precipitationProbability),
+    temperatureMax: average(bucket.temperatureMax),
+    temperatureMin: average(bucket.temperatureMin),
     weatherCode: dominantWeatherCode(bucket.weatherCode),
     windMax: average(bucket.windMax)
   }));
-}
-
-export function round(value: number): number {
-  return Math.round(value * 10) / 10;
-}
-
-export function numberOrNull(value: number | null | undefined): number | null {
-  return typeof value === "number" && Number.isFinite(value) ? round(value) : null;
 }
 
 function pushIfNumber(items: number[], value: number | null | undefined): void {
@@ -69,7 +99,9 @@ function pushIfNumber(items: number[], value: number | null | undefined): void {
 }
 
 function average(items: number[]): number | null {
-  return items.length ? round(items.reduce((sum, value) => sum + value, 0) / items.length) : null;
+  return items.length
+    ? Math.round((items.reduce((sum, value) => sum + value, 0) / items.length) * 10) / 10
+    : null;
 }
 
 function dominantWeatherCode(items: number[]): number | null {

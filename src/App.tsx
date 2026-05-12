@@ -8,8 +8,14 @@ import { getInitialStatus, languageOptions, translations } from "./i18n.js";
 import { fetchForecast, fetchLocations } from "./services/weatherApi.js";
 import { chartMetricKeys } from "./types/chart.js";
 import { formatLocation, formatShortDate, formatSourceCount } from "./utils/formatters.js";
+import {
+  defaultVisibleMetrics,
+  filterForecast,
+  normalizeVisibleMetrics
+} from "./utils/forecast.js";
+import { getMetricLabel } from "./utils/metrics.js";
 import { readUrlState, writeUrlState } from "./utils/urlState.js";
-import type { Language, Translations } from "./i18n.js";
+import type { Language } from "./i18n.js";
 import type { ChartMetricKey } from "./types/chart.js";
 import type { ForecastComparison, LocationResult } from "./types/weather.js";
 
@@ -22,8 +28,16 @@ export function App() {
   const [locations, setLocations] = useState<LocationResult[]>([]);
   const [forecast, setForecast] = useState<ForecastComparison | null>(null);
   const [selectedDay, setSelectedDay] = useState(initialUrlState.current.day);
+  const [selectedMetrics, setSelectedMetrics] = useState<ChartMetricKey[]>(
+    normalizeVisibleMetrics(initialUrlState.current.metrics)
+  );
+  const [selectedSourceIds, setSelectedSourceIds] = useState<string[] | null>(
+    initialUrlState.current.sourceIds
+  );
   const [selectedMetric, setSelectedMetric] = useState<ChartMetricKey>(
-    initialUrlState.current.metric
+    initialUrlState.current.metrics.includes(initialUrlState.current.metric)
+      ? initialUrlState.current.metric
+      : (initialUrlState.current.metrics[0] ?? defaultVisibleMetrics[0] ?? "temperatureMax")
   );
   const [status, setStatus] = useState(getInitialStatus(language));
 
@@ -38,7 +52,9 @@ export function App() {
           language,
           location,
           metric: selectedMetric,
-          query: nextQuery
+          metrics: selectedMetrics,
+          query: nextQuery,
+          sourceIds: selectedSourceIds
         });
       }
 
@@ -59,7 +75,7 @@ export function App() {
         setStatus(error instanceof Error ? error.message : t.noForecastError);
       }
     },
-    [language, query, selectedDay, selectedMetric, t]
+    [language, query, selectedDay, selectedMetric, selectedMetrics, selectedSourceIds, t]
   );
 
   const searchForLocations = useCallback(
@@ -78,7 +94,9 @@ export function App() {
         language,
         location: null,
         metric: selectedMetric,
-        query: cleaned
+        metrics: selectedMetrics,
+        query: cleaned,
+        sourceIds: selectedSourceIds
       });
 
       try {
@@ -100,7 +118,7 @@ export function App() {
         setStatus(error instanceof Error ? error.message : t.noLocationError);
       }
     },
-    [language, loadForecast, selectedDay, selectedMetric, t]
+    [language, loadForecast, selectedDay, selectedMetric, selectedMetrics, selectedSourceIds, t]
   );
 
   useEffect(() => {
@@ -134,6 +152,7 @@ export function App() {
     writeUrlState({
       language: nextLanguage,
       metric: selectedMetric,
+      metrics: selectedMetrics,
       location: forecast
         ? {
             id: forecast.location.label,
@@ -143,7 +162,8 @@ export function App() {
           }
         : null,
       day: selectedDay,
-      query
+      query,
+      sourceIds: selectedSourceIds
     });
     setStatus((currentStatus) =>
       currentStatus === getInitialStatus(language) ? getInitialStatus(nextLanguage) : currentStatus
@@ -157,6 +177,7 @@ export function App() {
       day: nextDay,
       language,
       metric: selectedMetric,
+      metrics: selectedMetrics,
       location: forecast
         ? {
             id: forecast.location.label,
@@ -165,7 +186,8 @@ export function App() {
             longitude: forecast.location.longitude
           }
         : null,
-      query
+      query,
+      sourceIds: selectedSourceIds
     });
   }
 
@@ -175,6 +197,7 @@ export function App() {
       day: selectedDay,
       language,
       metric,
+      metrics: selectedMetrics,
       location: forecast
         ? {
             id: forecast.location.label,
@@ -183,11 +206,66 @@ export function App() {
             longitude: forecast.location.longitude
           }
         : null,
-      query
+      query,
+      sourceIds: selectedSourceIds
     });
   }
 
-  const visibleForecast = forecast ? filterForecastByDay(forecast, selectedDay) : null;
+  function handleMetricVisibilityChange(metric: ChartMetricKey) {
+    const nextMetrics = selectedMetrics.includes(metric)
+      ? selectedMetrics.filter((item) => item !== metric)
+      : chartMetricKeys.filter((item) => [...selectedMetrics, metric].includes(item));
+
+    if (!nextMetrics.length) {
+      return;
+    }
+
+    const nextSelectedMetric = nextMetrics.includes(selectedMetric)
+      ? selectedMetric
+      : (nextMetrics[0] ?? "temperatureMax");
+    setSelectedMetrics(nextMetrics);
+    setSelectedMetric(nextSelectedMetric);
+    writeUrlState({
+      day: selectedDay,
+      language,
+      metric: nextSelectedMetric,
+      metrics: nextMetrics,
+      location: currentForecastLocation(forecast),
+      query,
+      sourceIds: selectedSourceIds
+    });
+  }
+
+  function handleSourceVisibilityChange(sourceId: string) {
+    if (!forecast) {
+      return;
+    }
+
+    const currentSourceIds = selectedSourceIds ?? forecast.sources.map((source) => source.id);
+    const nextSourceIds = currentSourceIds.includes(sourceId)
+      ? currentSourceIds.filter((item) => item !== sourceId)
+      : [...currentSourceIds, sourceId];
+
+    if (!nextSourceIds.length) {
+      return;
+    }
+
+    setSelectedSourceIds(nextSourceIds);
+    writeUrlState({
+      day: selectedDay,
+      language,
+      metric: selectedMetric,
+      metrics: selectedMetrics,
+      location: currentForecastLocation(forecast),
+      query,
+      sourceIds: nextSourceIds
+    });
+  }
+
+  const visibleForecast = forecast
+    ? filterForecast(forecast, selectedDay, selectedSourceIds)
+    : null;
+  const visibleSourceIds = visibleForecast?.sources.map((source) => source.id) ?? [];
 
   return (
     <main className="app-shell">
@@ -244,16 +322,55 @@ export function App() {
                 ))}
               </select>
             </label>
+            <fieldset className="filter-group">
+              <legend>{t.sourceFilters}</legend>
+              <div className="filter-options">
+                {forecast.sources.map((source) => (
+                  <label className="filter-option" key={source.id}>
+                    <input
+                      checked={visibleSourceIds.includes(source.id)}
+                      disabled={
+                        visibleSourceIds.length === 1 && visibleSourceIds.includes(source.id)
+                      }
+                      onChange={() => handleSourceVisibilityChange(source.id)}
+                      type="checkbox"
+                    />
+                    <span>{source.name}</span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+            <fieldset className="filter-group">
+              <legend>{t.parameterFilters}</legend>
+              <div className="filter-options">
+                {chartMetricKeys.map((metric) => (
+                  <label className="filter-option" key={metric}>
+                    <input
+                      checked={selectedMetrics.includes(metric)}
+                      disabled={selectedMetrics.length === 1 && selectedMetrics.includes(metric)}
+                      onChange={() => handleMetricVisibilityChange(metric)}
+                      type="checkbox"
+                    />
+                    <span>{getMetricLabel(metric, t)}</span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
           </section>
 
-          <SummaryCards days={visibleForecast.average} t={t} />
+          <SummaryCards
+            days={visibleForecast.average}
+            language={language}
+            metrics={selectedMetrics}
+            t={t}
+          />
           <section className="chart-section" aria-label={t.chartTitle}>
             <div className="section-heading">
               <h2>{t.chartTitle}</h2>
               <span>{formatSourceCount(visibleForecast.sources.length, language)}</span>
             </div>
             <div className="chart-tabs" role="tablist" aria-label={t.chartTitle}>
-              {chartMetricKeys.map((metric) => (
+              {selectedMetrics.map((metric) => (
                 <button
                   aria-selected={selectedMetric === metric}
                   className={selectedMetric === metric ? "chart-tab active" : "chart-tab"}
@@ -272,39 +389,25 @@ export function App() {
               metric={selectedMetric}
             />
           </section>
-          <ForecastTable forecast={visibleForecast} language={language} t={t} />
+          <ForecastTable
+            forecast={visibleForecast}
+            language={language}
+            metrics={selectedMetrics}
+            t={t}
+          />
         </>
       ) : null}
     </main>
   );
 }
 
-function filterForecastByDay(
-  forecast: ForecastComparison,
-  selectedDay: string
-): ForecastComparison {
-  if (!selectedDay) {
-    return forecast;
-  }
-
-  return {
-    ...forecast,
-    average: forecast.average.filter((day) => day.date === selectedDay),
-    sources: forecast.sources.map((source) => ({
-      ...source,
-      days: source.days.filter((day) => day.date === selectedDay)
-    }))
-  };
-}
-
-function getMetricLabel(metric: ChartMetricKey, t: Translations): string {
-  const labels: Record<ChartMetricKey, string> = {
-    temperatureMax: t.metricTemperatureMax,
-    temperatureMin: t.metricTemperatureMin,
-    precipitation: t.metricPrecipitation,
-    precipitationProbability: t.metricPrecipitationProbability,
-    windMax: t.metricWind
-  };
-
-  return labels[metric];
+function currentForecastLocation(forecast: ForecastComparison | null): LocationResult | null {
+  return forecast
+    ? {
+        id: forecast.location.label,
+        name: forecast.location.label,
+        latitude: forecast.location.latitude,
+        longitude: forecast.location.longitude
+      }
+    : null;
 }

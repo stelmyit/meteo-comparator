@@ -2,9 +2,6 @@ name: Pull Request Checks
 
 on:
   pull_request:
-    branches:
-      - main
-      - master
 
 jobs:
   quality:
@@ -16,7 +13,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 22.13.0
           cache: npm
 
       - name: Install dependencies

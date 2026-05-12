@@ -15,12 +15,21 @@ describe("urlState", () => {
       query: "Gdansk",
       day: "2026-05-12",
       metric: "windMax",
+      metrics: [
+        "temperatureMax",
+        "temperatureMin",
+        "apparentTemperatureMax",
+        "precipitation",
+        "precipitationProbability",
+        "windMax"
+      ],
       selectedLocation: {
         id: "54.35,18.65",
         name: "Gdansk, Poland",
         latitude: 54.35,
         longitude: 18.65
-      }
+      },
+      sourceIds: null
     });
   });
 

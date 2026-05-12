@@ -15,6 +15,10 @@ export function formatMillimeters(value: number | null | undefined): string {
   return typeof value === "number" && Number.isFinite(value) ? `${value.toFixed(1)} mm` : "-";
 }
 
+export function formatPercent(value: number | null | undefined): string {
+  return typeof value === "number" && Number.isFinite(value) ? `${value.toFixed(0)}%` : "-";
+}
+
 export function formatWind(value: number | null | undefined): string {
   return typeof value === "number" && Number.isFinite(value) ? `${value.toFixed(1)} km/h` : "-";
 }

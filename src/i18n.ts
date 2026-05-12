@@ -3,12 +3,15 @@ export type Language = "pl" | "en";
 export type Translations = {
   appTitle: string;
   chartTitle: string;
+  condition: string;
   dailySum: string;
+  dataFilters: string;
   day: string;
   allDays: string;
   language: string;
   location: string;
   max: string;
+  metricApparentTemperature: string;
   metricPrecipitation: string;
   metricPrecipitationProbability: string;
   metricTemperatureMax: string;
@@ -26,6 +29,8 @@ export type Translations = {
   searchLocations: string;
   searchingLocation: string;
   source: string;
+  sourceFilters: string;
+  parameterFilters: string;
   tableTitle: string;
   todayAverage: string;
   updatedAt: string;
@@ -37,11 +42,14 @@ export const translations: Record<Language, Translations> = {
     appTitle: "Porównaj prognozy pogody",
     allDays: "Wszystkie dni",
     chartTitle: "Wykres",
+    condition: "Warunki",
     dailySum: "suma dzienna",
+    dataFilters: "Filtry danych",
     day: "Dzień",
     language: "Język",
     location: "Lokalizacja",
     max: "maksymalny",
+    metricApparentTemperature: "Temp. odczuwalna",
     metricPrecipitation: "Opad",
     metricPrecipitationProbability: "Szansa opadów",
     metricTemperatureMax: "Temp. maks.",
@@ -59,6 +67,8 @@ export const translations: Record<Language, Translations> = {
     searchLocations: "Wyszukiwarka lokalizacji",
     searchingLocation: "Szukam lokalizacji...",
     source: "Źródło",
+    sourceFilters: "Źródła",
+    parameterFilters: "Parametry",
     tableTitle: "Porównanie źródeł",
     todayAverage: "średnia na dziś",
     updatedAt: "Aktualizacja",
@@ -68,11 +78,14 @@ export const translations: Record<Language, Translations> = {
     appTitle: "Compare weather forecasts",
     allDays: "All days",
     chartTitle: "Chart",
+    condition: "Condition",
     dailySum: "daily total",
+    dataFilters: "Data filters",
     day: "Day",
     language: "Language",
     location: "Location",
     max: "maximum",
+    metricApparentTemperature: "Feels like",
     metricPrecipitation: "Precipitation",
     metricPrecipitationProbability: "Precip. chance",
     metricTemperatureMax: "Max temp.",
@@ -90,6 +103,8 @@ export const translations: Record<Language, Translations> = {
     searchLocations: "Location search",
     searchingLocation: "Searching for locations...",
     source: "Source",
+    sourceFilters: "Sources",
+    parameterFilters: "Parameters",
     tableTitle: "Source comparison",
     todayAverage: "average today",
     updatedAt: "Updated",

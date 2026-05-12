@@ -19,9 +19,9 @@ describe("App", () => {
 
     render(<App />);
 
-    expect(await screen.findByText("20.3°C")).toBeInTheDocument();
-    expect(screen.getByText("Open-Meteo")).toBeInTheDocument();
-    expect(screen.getByText("MET Norway")).toBeInTheDocument();
+    expect(await screen.findAllByText("20.3°C")).not.toHaveLength(0);
+    expect(screen.getAllByText("Open-Meteo")).not.toHaveLength(0);
+    expect(screen.getAllByText("MET Norway")).not.toHaveLength(0);
     expect(screen.getByText("2 źródła")).toBeInTheDocument();
   });
 
@@ -31,7 +31,7 @@ describe("App", () => {
 
     render(<App />);
 
-    await screen.findByText("20.3°C");
+    await screen.findAllByText("20.3°C");
     await user.clear(screen.getByRole("searchbox", { name: "Lokalizacja" }));
     await user.type(screen.getByRole("searchbox", { name: "Lokalizacja" }), "Gdańsk");
     await user.click(screen.getByRole("button", { name: "Szukaj" }));
@@ -49,7 +49,7 @@ describe("App", () => {
 
     render(<App />);
 
-    await screen.findByText("20.3°C");
+    await screen.findAllByText("20.3°C");
     const daySelect = screen.getAllByRole("combobox")[1];
 
     if (!daySelect) {
@@ -58,7 +58,7 @@ describe("App", () => {
 
     await user.selectOptions(daySelect, "2026-05-12");
 
-    expect(screen.getByText("22.0°C")).toBeInTheDocument();
+    expect(await screen.findAllByText("22.0°C")).not.toHaveLength(0);
     expect(screen.queryByText("20.3°C")).not.toBeInTheDocument();
     expect(new URLSearchParams(window.location.search).get("day")).toBe("2026-05-12");
   });
@@ -75,13 +75,52 @@ describe("App", () => {
     expect(new URLSearchParams(window.location.search).get("metric")).toBe("windMax");
   });
 
+  it("filters visible sources and keeps the choice in the URL", async () => {
+    const user = userEvent.setup();
+    mockWeatherFetch();
+
+    render(<App />);
+
+    await screen.findAllByText("20.3°C");
+    await user.click(screen.getByRole("checkbox", { name: "MET Norway" }));
+
+    expect(new URLSearchParams(window.location.search).get("sources")).toBe("open-meteo");
+    expect(screen.getByRole("checkbox", { name: "Open-Meteo" })).toBeDisabled();
+    expect(screen.getByText("1 źródło")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("checkbox", { name: "MET Norway" }));
+
+    expect(new URLSearchParams(window.location.search).get("sources")).toBe(
+      "open-meteo,met-norway"
+    );
+  });
+
+  it("filters visible parameters and hides matching chart tabs", async () => {
+    const user = userEvent.setup();
+    mockWeatherFetch();
+
+    render(<App />);
+
+    await screen.findByRole("tab", { name: "Opad" });
+    await user.click(screen.getByRole("checkbox", { name: "Opad" }));
+
+    expect(screen.queryByRole("tab", { name: "Opad" })).not.toBeInTheDocument();
+    expect(new URLSearchParams(window.location.search).get("metrics")).not.toContain(
+      "precipitation,"
+    );
+
+    await user.click(screen.getByRole("checkbox", { name: "Temp. maks." }));
+
+    expect(new URLSearchParams(window.location.search).get("metric")).toBe("temperatureMin");
+  });
+
   it("shows a message when the location input is empty", async () => {
     const user = userEvent.setup();
     mockWeatherFetch();
 
     render(<App />);
 
-    await screen.findByText("20.3°C");
+    await screen.findAllByText("20.3°C");
     await user.clear(screen.getByRole("searchbox", { name: "Lokalizacja" }));
     await user.click(screen.getByRole("button", { name: "Szukaj" }));
 
@@ -187,7 +226,7 @@ describe("App", () => {
 
     render(<App />);
 
-    await screen.findByText("20.3°C");
+    await screen.findAllByText("20.3°C");
     await user.selectOptions(screen.getByLabelText("Język"), "en");
 
     expect(
@@ -287,11 +326,14 @@ function day(
   windMax: number
 ): WeatherDay {
   return {
+    apparentTemperatureMax: temperatureMax + 1,
+    apparentTemperatureMin: temperatureMin - 1,
     date,
     temperatureMax,
     temperatureMin,
     precipitation,
     precipitationProbability: 45,
+    weatherCode: precipitation > 0 ? 61 : 1,
     windMax
   };
 }
