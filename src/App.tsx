@@ -9,10 +9,16 @@ import { ForecastTable } from "./components/ForecastTable.jsx";
 import { LocationCollections } from "./components/LocationCollections.jsx";
 import { LocationPicker } from "./components/LocationPicker.jsx";
 import { SummaryCards } from "./components/SummaryCards.jsx";
+import { WeatherIcon } from "./components/WeatherIcon.jsx";
 import { getInitialStatus, languageOptions, translations } from "./i18n.js";
 import { fetchForecast, fetchLocations } from "./services/weatherApi.js";
 import { chartMetricKeys } from "./types/chart.js";
-import { formatLocation, formatShortDate, formatSourceCount } from "./utils/formatters.js";
+import {
+  formatLocation,
+  formatShortDate,
+  formatSourceCount,
+  formatTemperature
+} from "./utils/formatters.js";
 import {
   buildForecastCsv,
   buildForecastExportPayload,
@@ -41,6 +47,8 @@ import type { ForecastComparison, LocationResult } from "./types/weather.js";
 import type { StoredLocation } from "./utils/locations.js";
 import type { UnitSystem } from "./utils/units.js";
 
+type ViewKey = "overview" | "charts" | "table";
+
 export function App() {
   const initialUrlState = useRef(readUrlState());
   const hasInitialized = useRef(false);
@@ -65,6 +73,7 @@ export function App() {
   const [recentLocations, setRecentLocations] = useState(() => readRecentLocations());
   const [status, setStatus] = useState(getInitialStatus(language));
   const [units, setUnits] = useState<UnitSystem>(initialUrlState.current.units);
+  const [activeView, setActiveView] = useState<ViewKey>("overview");
 
   const loadForecast = useCallback(
     async (location: LocationResult, options: { nextQuery?: string; syncUrl?: boolean } = {}) => {
@@ -388,6 +397,7 @@ export function App() {
     ? filterForecast(forecast, selectedDay, selectedSourceIds)
     : null;
   const visibleSourceIds = visibleForecast?.sources.map((source) => source.id) ?? [];
+  const heroDay = visibleForecast?.average[0] ?? null;
   const isCurrentLocationSaved = forecast
     ? savedLocations.some(
         (location) => location.id === createStoredLocationFromForecast(forecast).id
@@ -460,108 +470,173 @@ export function App() {
 
       {forecast && visibleForecast ? (
         <>
-          <section className="filterbar">
-            <label className="day-select">
-              <span>{t.day}</span>
-              <select value={selectedDay} onChange={handleDayChange}>
-                <option value="">{t.allDays}</option>
-                {forecast.average.map((day) => (
-                  <option key={day.date} value={day.date}>
-                    {formatShortDate(day.date, language)}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <fieldset className="filter-group">
-              <legend>{t.sourceFilters}</legend>
-              <div className="filter-options">
-                {forecast.sources.map((source) => (
-                  <label className="filter-option" key={source.id}>
-                    <input
-                      checked={visibleSourceIds.includes(source.id)}
-                      disabled={
-                        visibleSourceIds.length === 1 && visibleSourceIds.includes(source.id)
-                      }
-                      onChange={() => handleSourceVisibilityChange(source.id)}
-                      type="checkbox"
-                    />
-                    <span>{source.name}</span>
-                  </label>
+          <section aria-label={t.workspaceSummary} className="workspace-panel">
+            <div className="workspace-hero">
+              <div className="workspace-hero-card">
+                <div className="workspace-weather">
+                  <WeatherIcon code={heroDay?.weatherCode} label={t.condition} />
+                </div>
+                <div className="workspace-copy">
+                  <p className="workspace-label">{forecast.location.label}</p>
+                  <div className="workspace-meta">
+                    <span className="workspace-badge">
+                      {selectedDay ? formatShortDate(selectedDay, language) : t.allDays}
+                    </span>
+                    <span className="workspace-badge">
+                      {formatSourceCount(visibleForecast.sources.length, language)}
+                    </span>
+                    <span className="workspace-badge">
+                      {units === "metric" ? t.metricUnits : t.imperial}
+                    </span>
+                  </div>
+                  {heroDay ? (
+                    <div className="workspace-temperature">
+                      <strong>
+                        {formatTemperature(
+                          selectedMetric === "temperatureMin"
+                            ? heroDay.temperatureMin
+                            : heroDay.temperatureMax,
+                          units
+                        )}
+                      </strong>
+                      <span>{getMetricLabel(selectedMetric, t)}</span>
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+              <div className="workspace-tabs" role="tablist" aria-label={t.workspaceViews}>
+                {[
+                  { key: "overview", label: t.viewOverview },
+                  { key: "charts", label: t.viewCharts },
+                  { key: "table", label: t.viewTable }
+                ].map((view) => (
+                  <button
+                    aria-selected={activeView === view.key}
+                    className={activeView === view.key ? "workspace-tab active" : "workspace-tab"}
+                    key={view.key}
+                    onClick={() => setActiveView(view.key as ViewKey)}
+                    role="tab"
+                    type="button"
+                  >
+                    {view.label}
+                  </button>
                 ))}
               </div>
-            </fieldset>
-            <fieldset className="filter-group">
-              <legend>{t.parameterFilters}</legend>
-              <div className="filter-options">
-                {chartMetricKeys.map((metric) => (
-                  <label className="filter-option" key={metric}>
-                    <input
-                      checked={selectedMetrics.includes(metric)}
-                      disabled={selectedMetrics.length === 1 && selectedMetrics.includes(metric)}
-                      onChange={() => handleMetricVisibilityChange(metric)}
-                      type="checkbox"
-                    />
-                    <span>{getMetricLabel(metric, t)}</span>
-                  </label>
-                ))}
-              </div>
-            </fieldset>
+            </div>
+
+            <section className="filterbar">
+              <label className="day-select">
+                <span>{t.day}</span>
+                <select value={selectedDay} onChange={handleDayChange}>
+                  <option value="">{t.allDays}</option>
+                  {forecast.average.map((day) => (
+                    <option key={day.date} value={day.date}>
+                      {formatShortDate(day.date, language)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <fieldset className="filter-group">
+                <legend>{t.sourceFilters}</legend>
+                <div className="filter-options">
+                  {forecast.sources.map((source) => (
+                    <label className="filter-option" key={source.id}>
+                      <input
+                        checked={visibleSourceIds.includes(source.id)}
+                        disabled={
+                          visibleSourceIds.length === 1 && visibleSourceIds.includes(source.id)
+                        }
+                        onChange={() => handleSourceVisibilityChange(source.id)}
+                        type="checkbox"
+                      />
+                      <span>{source.name}</span>
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+              <fieldset className="filter-group">
+                <legend>{t.parameterFilters}</legend>
+                <div className="filter-options">
+                  {chartMetricKeys.map((metric) => (
+                    <label className="filter-option" key={metric}>
+                      <input
+                        checked={selectedMetrics.includes(metric)}
+                        disabled={selectedMetrics.length === 1 && selectedMetrics.includes(metric)}
+                        onChange={() => handleMetricVisibilityChange(metric)}
+                        type="checkbox"
+                      />
+                      <span>{getMetricLabel(metric, t)}</span>
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+            </section>
           </section>
 
-          <SummaryCards
-            days={visibleForecast.average}
-            language={language}
-            metrics={selectedMetrics}
-            t={t}
-            units={units}
-          />
-          <ForecastInsights
-            forecast={visibleForecast}
-            language={language}
-            metric={selectedMetric}
-            t={t}
-          />
-          <ForecastAlerts forecast={visibleForecast} language={language} t={t} />
-          <ActivityPlanner forecast={visibleForecast} language={language} t={t} />
-          <DataActions
-            onCopyLink={handleCopyLink}
-            onExportCsv={handleExportCsv}
-            onExportJson={handleExportJson}
-            t={t}
-          />
-          <section className="chart-section" aria-label={t.chartTitle}>
-            <div className="section-heading">
-              <h2>{t.chartTitle}</h2>
-              <span>{formatSourceCount(visibleForecast.sources.length, language)}</span>
-            </div>
-            <div className="chart-tabs" role="tablist" aria-label={t.chartTitle}>
-              {selectedMetrics.map((metric) => (
-                <button
-                  aria-selected={selectedMetric === metric}
-                  className={selectedMetric === metric ? "chart-tab active" : "chart-tab"}
-                  key={metric}
-                  onClick={() => handleMetricChange(metric)}
-                  role="tab"
-                  type="button"
-                >
-                  {getMetricLabel(metric, t)}
-                </button>
-              ))}
-            </div>
-            <ForecastChart
-              days={visibleForecast.average}
+          {activeView === "overview" ? (
+            <>
+              <SummaryCards
+                days={visibleForecast.average}
+                language={language}
+                metrics={selectedMetrics}
+                t={t}
+                units={units}
+              />
+              <ForecastInsights
+                forecast={visibleForecast}
+                language={language}
+                metric={selectedMetric}
+                t={t}
+              />
+              <ForecastAlerts forecast={visibleForecast} language={language} t={t} />
+              <ActivityPlanner forecast={visibleForecast} language={language} t={t} />
+              <DataActions
+                onCopyLink={handleCopyLink}
+                onExportCsv={handleExportCsv}
+                onExportJson={handleExportJson}
+                t={t}
+              />
+            </>
+          ) : null}
+
+          {activeView === "charts" ? (
+            <section className="chart-section" aria-label={t.chartTitle}>
+              <div className="section-heading">
+                <h2>{t.chartTitle}</h2>
+                <span>{formatSourceCount(visibleForecast.sources.length, language)}</span>
+              </div>
+              <div className="chart-tabs" role="tablist" aria-label={t.chartTitle}>
+                {selectedMetrics.map((metric) => (
+                  <button
+                    aria-selected={selectedMetric === metric}
+                    className={selectedMetric === metric ? "chart-tab active" : "chart-tab"}
+                    key={metric}
+                    onClick={() => handleMetricChange(metric)}
+                    role="tab"
+                    type="button"
+                  >
+                    {getMetricLabel(metric, t)}
+                  </button>
+                ))}
+              </div>
+              <ForecastChart
+                days={visibleForecast.average}
+                language={language}
+                metric={selectedMetric}
+                units={units}
+              />
+            </section>
+          ) : null}
+
+          {activeView === "table" ? (
+            <ForecastTable
+              forecast={visibleForecast}
               language={language}
-              metric={selectedMetric}
+              metrics={selectedMetrics}
+              t={t}
               units={units}
             />
-          </section>
-          <ForecastTable
-            forecast={visibleForecast}
-            language={language}
-            metrics={selectedMetrics}
-            t={t}
-            units={units}
-          />
+          ) : null}
         </>
       ) : null}
     </main>

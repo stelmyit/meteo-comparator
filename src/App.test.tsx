@@ -70,6 +70,8 @@ describe("App", () => {
 
     render(<App />);
 
+    await screen.findAllByText("20.3°C");
+    await user.click(screen.getByRole("tab", { name: "Wykresy" }));
     await user.click(await screen.findByRole("tab", { name: "Wiatr" }));
 
     expect(screen.getByRole("tab", { name: "Wiatr" })).toHaveAttribute("aria-selected", "true");
@@ -96,11 +98,36 @@ describe("App", () => {
 
     render(<App />);
 
+    await screen.findAllByText("20.3°C");
+    await user.click(screen.getByRole("tab", { name: "Wykresy" }));
     await screen.findByRole("tab", { name: "Opad" });
     await user.click(screen.getByRole("checkbox", { name: "Opad" }));
 
     expect(screen.queryByRole("tab", { name: "Opad" })).not.toBeInTheDocument();
-    expect(new URLSearchParams(window.location.search).get("metrics")).not.toContain("precipitation,");
+    expect(new URLSearchParams(window.location.search).get("metrics")).not.toContain(
+      "precipitation,"
+    );
+  });
+
+  it("switches between overview, charts and table views", async () => {
+    const user = userEvent.setup();
+    mockWeatherFetch();
+
+    render(<App />);
+
+    await screen.findAllByText("20.3°C");
+    expect(screen.getByRole("heading", { name: "Udostepnianie i eksport" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Wykres" })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("tab", { name: "Wykresy" }));
+    expect(await screen.findByRole("heading", { name: "Wykres" })).toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "Udostepnianie i eksport" })
+    ).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("tab", { name: "Tabela" }));
+    expect(await screen.findByRole("heading", { name: "Porownanie zrodel" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Wykres" })).not.toBeInTheDocument();
   });
 
   it("shows a message when the location input is empty", async () => {
@@ -218,7 +245,9 @@ describe("App", () => {
     await screen.findAllByText("20.3°C");
     await user.selectOptions(screen.getByLabelText("Jezyk"), "en");
 
-    expect(await screen.findByRole("heading", { name: "Compare weather forecasts" })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { name: "Compare weather forecasts" })
+    ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Search" })).toBeInTheDocument();
     expect(screen.getByText("2 sources")).toBeInTheDocument();
     expect(new URLSearchParams(window.location.search).get("lang")).toBe("en");
@@ -252,9 +281,13 @@ describe("App", () => {
 
     render(<App />);
 
-    expect(await screen.findByRole("heading", { name: "Compare weather forecasts" })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { name: "Compare weather forecasts" })
+    ).toBeInTheDocument();
     expect(screen.getByRole("searchbox", { name: "Location" })).toHaveValue("Gdansk");
-    expect(fetch).toHaveBeenCalledWith("/api/forecast?lat=54.35&lon=18.65&label=Gdansk%2C%20Poland");
+    expect(fetch).toHaveBeenCalledWith(
+      "/api/forecast?lat=54.35&lon=18.65&label=Gdansk%2C%20Poland"
+    );
     expect(screen.getByLabelText("Day")).toHaveValue("2026-05-11");
   });
 
@@ -285,7 +318,9 @@ describe("App", () => {
     await screen.findAllByText("20.3°C");
     await user.click(screen.getByRole("button", { name: "Kopiuj link" }));
 
-    expect(writeText).toHaveBeenCalledWith(expect.stringContaining("http://localhost:3000/?lang=pl&q=Warszawa"));
+    expect(writeText).toHaveBeenCalledWith(
+      expect.stringContaining("http://localhost:3000/?lang=pl&q=Warszawa")
+    );
     expect(screen.getByRole("status")).toHaveTextContent("Link skopiowany.");
   });
 
@@ -373,4 +408,3 @@ function jsonResponse<T>(body: T, ok = true): Response {
     json: async () => body
   } as Response;
 }
-

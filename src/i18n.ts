@@ -63,9 +63,15 @@ export type Translations = {
   searchingLocation: string;
   source: string;
   sourceFilters: string;
+  tableView: string;
   tableTitle: string;
   todayAverage: string;
   updatedAt: string;
+  viewCharts: string;
+  viewOverview: string;
+  viewTable: string;
+  workspaceSummary: string;
+  workspaceViews: string;
   warmestDay: string;
   wind: string;
 };
@@ -134,9 +140,15 @@ export const translations: Record<Language, Translations> = {
     searchingLocation: "Szukam lokalizacji...",
     source: "Zrodlo",
     sourceFilters: "Zrodla",
+    tableView: "Tabela",
     tableTitle: "Porownanie zrodel",
     todayAverage: "srednia na dzis",
     updatedAt: "Aktualizacja",
+    viewCharts: "Wykresy",
+    viewOverview: "Przeglad",
+    viewTable: "Tabela",
+    workspaceSummary: "Aktualny widok prognozy",
+    workspaceViews: "Widoki danych",
     warmestDay: "Najcieplejszy dzien",
     wind: "Wiatr"
   },
@@ -203,9 +215,15 @@ export const translations: Record<Language, Translations> = {
     searchingLocation: "Searching for locations...",
     source: "Source",
     sourceFilters: "Sources",
+    tableView: "Table",
     tableTitle: "Source comparison",
     todayAverage: "average today",
     updatedAt: "Updated",
+    viewCharts: "Charts",
+    viewOverview: "Overview",
+    viewTable: "Table",
+    workspaceSummary: "Current forecast view",
+    workspaceViews: "Data views",
     warmestDay: "Warmest day",
     wind: "Wind"
   }

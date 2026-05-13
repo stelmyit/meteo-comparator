@@ -127,14 +127,127 @@ h2 {
   grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr);
   gap: 12px;
   align-items: end;
-  margin: 0 0 16px;
+  margin: 0;
+}
+
+.workspace-panel {
+  display: grid;
+  gap: 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(15, 118, 110, 0.06), rgba(255, 255, 255, 0.96) 34%), var(--panel);
+  padding: 18px;
+  margin-bottom: 16px;
+}
+
+.workspace-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: start;
+}
+
+.workspace-hero-card {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  min-width: 0;
+  border: 1px solid rgba(15, 118, 110, 0.12);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.82);
+  padding: 14px;
+}
+
+.workspace-weather {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 74px;
+  height: 74px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #fff8dc, #e7f6f4);
+}
+
+.workspace-weather .weather-icon {
+  transform: scale(1.1);
+}
+
+.workspace-copy {
+  min-width: 0;
+}
+
+.workspace-label {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 850;
+}
+
+.workspace-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.workspace-badge {
+  border: 1px solid #cfe1db;
+  border-radius: 999px;
+  background: #f6fbf9;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 800;
+  padding: 7px 10px;
+}
+
+.workspace-temperature {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: baseline;
+  margin-top: 12px;
+}
+
+.workspace-temperature strong {
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.workspace-temperature span {
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.workspace-tabs {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.workspace-tab {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #f5f8f7;
+  color: var(--muted);
+  cursor: pointer;
+  font-weight: 800;
+  padding: 10px 14px;
+}
+
+.workspace-tab:hover,
+.workspace-tab.active {
+  border-color: #9bc9c1;
+  background: #e6f2ef;
+  color: var(--accent-strong);
 }
 
 .filter-group {
   min-width: 0;
-  border: 1px solid var(--line);
+  border: 1px solid rgba(23, 32, 27, 0.08);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.68);
+  background: rgba(255, 255, 255, 0.74);
   margin: 0;
   padding: 10px 12px 12px;
 }
@@ -366,7 +479,7 @@ h2 {
 .table-section {
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: var(--panel);
+  background: rgba(255, 255, 255, 0.96);
 }
 
 .metric-card {
@@ -694,6 +807,7 @@ th:first-child {
   }
 
   .topbar,
+  .workspace-hero,
   .filterbar,
   .summary-grid,
   .insights-grid {
@@ -719,5 +833,13 @@ th:first-child {
   .section-heading {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .workspace-tabs {
+    width: 100%;
+  }
+
+  .workspace-tab {
+    flex: 1 1 120px;
   }
 }
