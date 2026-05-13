@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { ActivityPlanner } from "./components/ActivityPlanner.jsx";
 import { DataActions } from "./components/DataActions.jsx";
 import { ForecastChart } from "./components/ForecastChart.jsx";
 import { ForecastInsights } from "./components/ForecastInsights.jsx";
@@ -148,7 +149,16 @@ export function App() {
         setStatus(error instanceof Error ? error.message : t.noLocationError);
       }
     },
-    [language, loadForecast, selectedDay, selectedMetric, selectedMetrics, selectedSourceIds, t, units]
+    [
+      language,
+      loadForecast,
+      selectedDay,
+      selectedMetric,
+      selectedMetrics,
+      selectedSourceIds,
+      t,
+      units
+    ]
   );
 
   useEffect(() => {
@@ -510,6 +520,7 @@ export function App() {
             metric={selectedMetric}
             t={t}
           />
+          <ActivityPlanner forecast={visibleForecast} language={language} t={t} />
           <DataActions
             onCopyLink={handleCopyLink}
             onExportCsv={handleExportCsv}

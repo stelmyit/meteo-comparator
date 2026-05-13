@@ -2,7 +2,11 @@ export type Language = "pl" | "en";
 
 export type Translations = {
   allDays: string;
+  activityPlanner: string;
   appTitle: string;
+  bestForOutdoor: string;
+  bestForTrip: string;
+  bestForWalk: string;
   calmestDay: string;
   chartTitle: string;
   condition: string;
@@ -41,6 +45,7 @@ export type Translations = {
   noResults: string;
   parameterFilters: string;
   partialFailure: (sources: string) => string;
+  plannerHint: string;
   precipitation: string;
   ready: (label: string) => string;
   recentLocations: string;
@@ -63,7 +68,11 @@ export type Translations = {
 export const translations: Record<Language, Translations> = {
   pl: {
     allDays: "Wszystkie dni",
+    activityPlanner: "Planer aktywnosci",
     appTitle: "Porownaj prognozy pogody",
+    bestForOutdoor: "Na aktywnosc na zewnatrz",
+    bestForTrip: "Na krotki wyjazd",
+    bestForWalk: "Na spacer",
     calmestDay: "Najspokojniejszy dzien",
     chartTitle: "Wykres",
     condition: "Warunki",
@@ -102,6 +111,7 @@ export const translations: Record<Language, Translations> = {
     noResults: "Nie znaleziono pasujacej lokalizacji.",
     parameterFilters: "Parametry",
     partialFailure: (sources) => `Gotowe. Czesc zrodel nie odpowiedziala: ${sources}`,
+    plannerHint: "Najlepszy bilans temperatury, opadow i wiatru",
     precipitation: "Opad",
     ready: (label) => `Gotowe. Porownano prognozy dla: ${label}`,
     recentLocations: "Ostatnie miejsca",
@@ -122,7 +132,11 @@ export const translations: Record<Language, Translations> = {
   },
   en: {
     allDays: "All days",
+    activityPlanner: "Activity planner",
     appTitle: "Compare weather forecasts",
+    bestForOutdoor: "Best for outdoor sports",
+    bestForTrip: "Best for a day trip",
+    bestForWalk: "Best for a walk",
     calmestDay: "Calmest day",
     chartTitle: "Chart",
     condition: "Condition",
@@ -161,6 +175,7 @@ export const translations: Record<Language, Translations> = {
     noResults: "No matching location found.",
     parameterFilters: "Parameters",
     partialFailure: (sources) => `Done. Some sources did not respond: ${sources}`,
+    plannerHint: "Best balance of temperature, rain and wind",
     precipitation: "Precipitation",
     ready: (label) => `Done. Compared forecasts for: ${label}`,
     recentLocations: "Recent places",

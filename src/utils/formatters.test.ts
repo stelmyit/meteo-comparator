@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   formatLocation,
   formatMillimeters,
+  formatPercent,
   formatSourceCount,
   formatTemperature,
   formatWind
@@ -39,5 +40,12 @@ describe("formatters", () => {
     expect(formatSourceCount(5, "pl")).toBe("5 zrodel");
     expect(formatSourceCount(1, "en")).toBe("1 source");
     expect(formatSourceCount(2, "en")).toBe("2 sources");
+  });
+
+  it("uses placeholders for missing numeric values", () => {
+    expect(formatTemperature(null)).toBe("-");
+    expect(formatMillimeters(undefined)).toBe("-");
+    expect(formatWind(Number.NaN)).toBe("-");
+    expect(formatPercent(undefined)).toBe("-");
   });
 });

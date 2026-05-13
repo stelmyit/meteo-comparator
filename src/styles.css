@@ -295,6 +295,17 @@ h2 {
   margin-bottom: 16px;
 }
 
+.planner-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.planner-card {
+  background: linear-gradient(180deg, rgba(230, 242, 239, 0.85), rgba(255, 255, 255, 0.96));
+}
+
 .data-actions {
   border: 1px solid var(--line);
   border-radius: 8px;
