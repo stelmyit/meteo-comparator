@@ -34,6 +34,7 @@ export type Translations = {
   imperial: string;
   language: string;
   location: string;
+  locationsPanel: string;
   metricSystem: string;
   metricUnits: string;
   max: string;
@@ -111,6 +112,7 @@ export const translations: Record<Language, Translations> = {
     imperial: "Imperialne",
     language: "Jezyk",
     location: "Lokalizacja",
+    locationsPanel: "Miejsca i wyniki",
     metricSystem: "Jednostki",
     metricUnits: "Metryczne",
     max: "maksymalny",
@@ -186,6 +188,7 @@ export const translations: Record<Language, Translations> = {
     imperial: "Imperial",
     language: "Language",
     location: "Location",
+    locationsPanel: "Places and results",
     metricSystem: "Units",
     metricUnits: "Metric",
     max: "maximum",

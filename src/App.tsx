@@ -459,14 +459,26 @@ export function App() {
         {status}
       </section>
 
-      <LocationCollections
-        onRemoveSaved={handleRemoveSavedLocation}
-        onSelect={handleCollectionLocationSelect}
-        recentLocations={recentLocations}
-        savedLocations={savedLocations}
-        t={t}
-      />
-      <LocationPicker locations={locations} onSelect={loadForecast} />
+      {savedLocations.length || recentLocations.length || locations.length ? (
+        <details className="collapsible-panel" open>
+          <summary className="collapsible-summary">
+            <span>{t.locationsPanel}</span>
+            <span className="collapsible-count">
+              {savedLocations.length + recentLocations.length + locations.length}
+            </span>
+          </summary>
+          <div className="collapsible-content">
+            <LocationCollections
+              onRemoveSaved={handleRemoveSavedLocation}
+              onSelect={handleCollectionLocationSelect}
+              recentLocations={recentLocations}
+              savedLocations={savedLocations}
+              t={t}
+            />
+            <LocationPicker locations={locations} onSelect={loadForecast} />
+          </div>
+        </details>
+      ) : null}
 
       {forecast && visibleForecast ? (
         <>
@@ -524,53 +536,63 @@ export function App() {
               </div>
             </div>
 
-            <section className="filterbar">
-              <label className="day-select">
-                <span>{t.day}</span>
-                <select value={selectedDay} onChange={handleDayChange}>
-                  <option value="">{t.allDays}</option>
-                  {forecast.average.map((day) => (
-                    <option key={day.date} value={day.date}>
-                      {formatShortDate(day.date, language)}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <fieldset className="filter-group">
-                <legend>{t.sourceFilters}</legend>
-                <div className="filter-options">
-                  {forecast.sources.map((source) => (
-                    <label className="filter-option" key={source.id}>
-                      <input
-                        checked={visibleSourceIds.includes(source.id)}
-                        disabled={
-                          visibleSourceIds.length === 1 && visibleSourceIds.includes(source.id)
-                        }
-                        onChange={() => handleSourceVisibilityChange(source.id)}
-                        type="checkbox"
-                      />
-                      <span>{source.name}</span>
-                    </label>
-                  ))}
-                </div>
-              </fieldset>
-              <fieldset className="filter-group">
-                <legend>{t.parameterFilters}</legend>
-                <div className="filter-options">
-                  {chartMetricKeys.map((metric) => (
-                    <label className="filter-option" key={metric}>
-                      <input
-                        checked={selectedMetrics.includes(metric)}
-                        disabled={selectedMetrics.length === 1 && selectedMetrics.includes(metric)}
-                        onChange={() => handleMetricVisibilityChange(metric)}
-                        type="checkbox"
-                      />
-                      <span>{getMetricLabel(metric, t)}</span>
-                    </label>
-                  ))}
-                </div>
-              </fieldset>
-            </section>
+            <details className="collapsible-panel filter-panel" open>
+              <summary className="collapsible-summary">
+                <span>{t.dataFilters}</span>
+                <span className="collapsible-count">{selectedMetrics.length}</span>
+              </summary>
+              <div className="collapsible-content">
+                <section className="filterbar">
+                  <label className="day-select">
+                    <span>{t.day}</span>
+                    <select value={selectedDay} onChange={handleDayChange}>
+                      <option value="">{t.allDays}</option>
+                      {forecast.average.map((day) => (
+                        <option key={day.date} value={day.date}>
+                          {formatShortDate(day.date, language)}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <fieldset className="filter-group">
+                    <legend>{t.sourceFilters}</legend>
+                    <div className="filter-options">
+                      {forecast.sources.map((source) => (
+                        <label className="filter-option" key={source.id}>
+                          <input
+                            checked={visibleSourceIds.includes(source.id)}
+                            disabled={
+                              visibleSourceIds.length === 1 && visibleSourceIds.includes(source.id)
+                            }
+                            onChange={() => handleSourceVisibilityChange(source.id)}
+                            type="checkbox"
+                          />
+                          <span>{source.name}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </fieldset>
+                  <fieldset className="filter-group">
+                    <legend>{t.parameterFilters}</legend>
+                    <div className="filter-options">
+                      {chartMetricKeys.map((metric) => (
+                        <label className="filter-option" key={metric}>
+                          <input
+                            checked={selectedMetrics.includes(metric)}
+                            disabled={
+                              selectedMetrics.length === 1 && selectedMetrics.includes(metric)
+                            }
+                            onChange={() => handleMetricVisibilityChange(metric)}
+                            type="checkbox"
+                          />
+                          <span>{getMetricLabel(metric, t)}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </fieldset>
+                </section>
+              </div>
+            </details>
           </section>
 
           {activeView === "overview" ? (

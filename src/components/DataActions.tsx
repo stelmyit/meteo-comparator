@@ -17,14 +17,23 @@ export function DataActions({ onCopyLink, onExportCsv, onExportJson, t }: DataAc
         <h2>{t.dataActions}</h2>
       </div>
       <div className="data-actions-row">
-        <button onClick={onCopyLink} type="button">
-          {t.copyLink}
+        <button className="action-button" onClick={onCopyLink} type="button">
+          <span aria-hidden="true" className="action-icon">
+            L
+          </span>
+          <span>{t.copyLink}</span>
         </button>
-        <button onClick={onExportCsv} type="button">
-          {t.exportCsv}
+        <button className="action-button" onClick={onExportCsv} type="button">
+          <span aria-hidden="true" className="action-icon">
+            C
+          </span>
+          <span>{t.exportCsv}</span>
         </button>
-        <button onClick={onExportJson} type="button">
-          {t.exportJson}
+        <button className="action-button" onClick={onExportJson} type="button">
+          <span aria-hidden="true" className="action-icon">
+            J
+          </span>
+          <span>{t.exportJson}</span>
         </button>
       </div>
     </section>

@@ -21,6 +21,8 @@ describe("App", () => {
     render(<App />);
 
     expect(await screen.findAllByText("20.3°C")).not.toHaveLength(0);
+    expect(screen.getByText("Miejsca i wyniki")).toBeInTheDocument();
+    expect(screen.getByText("Filtry danych")).toBeInTheDocument();
     expect(screen.getAllByText("Open-Meteo")).not.toHaveLength(0);
     expect(screen.getAllByText("MET Norway")).not.toHaveLength(0);
     expect(screen.getByText("2 zrodla")).toBeInTheDocument();
