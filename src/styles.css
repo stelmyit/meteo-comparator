@@ -306,6 +306,33 @@ h2 {
   background: linear-gradient(180deg, rgba(230, 242, 239, 0.85), rgba(255, 255, 255, 0.96));
 }
 
+.alerts-panel {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.86);
+  padding: 18px;
+  margin-bottom: 16px;
+}
+
+.alerts-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.alert-card {
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+
+.alert-card.info {
+  background: #eff6ff;
+}
+
+.alert-card.warning {
+  background: #fff7ed;
+}
+
 .data-actions {
   border: 1px solid var(--line);
   border-radius: 8px;

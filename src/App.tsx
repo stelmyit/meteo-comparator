@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ActivityPlanner } from "./components/ActivityPlanner.jsx";
 import { DataActions } from "./components/DataActions.jsx";
 import { ForecastChart } from "./components/ForecastChart.jsx";
+import { ForecastAlerts } from "./components/ForecastAlerts.jsx";
 import { ForecastInsights } from "./components/ForecastInsights.jsx";
 import { ForecastTable } from "./components/ForecastTable.jsx";
 import { LocationCollections } from "./components/LocationCollections.jsx";
@@ -520,6 +521,7 @@ export function App() {
             metric={selectedMetric}
             t={t}
           />
+          <ForecastAlerts forecast={visibleForecast} language={language} t={t} />
           <ActivityPlanner forecast={visibleForecast} language={language} t={t} />
           <DataActions
             onCopyLink={handleCopyLink}

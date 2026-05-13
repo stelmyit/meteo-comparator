@@ -3,6 +3,11 @@ export type Language = "pl" | "en";
 export type Translations = {
   allDays: string;
   activityPlanner: string;
+  alertsTitle: string;
+  alertCold: string;
+  alertHeat: string;
+  alertRain: string;
+  alertWind: string;
   appTitle: string;
   bestForOutdoor: string;
   bestForTrip: string;
@@ -69,6 +74,11 @@ export const translations: Record<Language, Translations> = {
   pl: {
     allDays: "Wszystkie dni",
     activityPlanner: "Planer aktywnosci",
+    alertsTitle: "Alerty pogodowe",
+    alertCold: "Chlodny poranek lub noc",
+    alertHeat: "Upal lub bardzo cieply dzien",
+    alertRain: "Wysoka szansa opadow lub mokry dzien",
+    alertWind: "Mozliwy silniejszy wiatr",
     appTitle: "Porownaj prognozy pogody",
     bestForOutdoor: "Na aktywnosc na zewnatrz",
     bestForTrip: "Na krotki wyjazd",
@@ -133,6 +143,11 @@ export const translations: Record<Language, Translations> = {
   en: {
     allDays: "All days",
     activityPlanner: "Activity planner",
+    alertsTitle: "Weather alerts",
+    alertCold: "Cold morning or night",
+    alertHeat: "Hot or very warm day",
+    alertRain: "High rain chance or wet day",
+    alertWind: "Stronger wind possible",
     appTitle: "Compare weather forecasts",
     bestForOutdoor: "Best for outdoor sports",
     bestForTrip: "Best for a day trip",
