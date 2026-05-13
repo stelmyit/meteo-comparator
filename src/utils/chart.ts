@@ -1,13 +1,15 @@
 import { formatShortDate } from "./formatters.js";
+import { convertPrecipitation, convertTemperature, convertWind } from "./units.js";
 import type { Language } from "../i18n.js";
 import type { ChartMetricKey } from "../types/chart.js";
 import type { WeatherDay } from "../types/weather.js";
+import type { UnitSystem } from "./units.js";
 
 type ChartMetricConfig = {
   color: string;
   floorAtZero: boolean;
   label: string;
-  unit: string;
+  unit: "temperature" | "precipitation" | "percent" | "wind";
 };
 
 const chartMetricConfig: Record<ChartMetricKey, ChartMetricConfig> = {
@@ -15,37 +17,37 @@ const chartMetricConfig: Record<ChartMetricKey, ChartMetricConfig> = {
     color: "#0f766e",
     floorAtZero: false,
     label: "maximum temperature",
-    unit: "°C"
+    unit: "temperature"
   },
   temperatureMin: {
     color: "#2563eb",
     floorAtZero: false,
     label: "minimum temperature",
-    unit: "°C"
+    unit: "temperature"
   },
   apparentTemperatureMax: {
     color: "#c2410c",
     floorAtZero: false,
     label: "apparent temperature",
-    unit: "°C"
+    unit: "temperature"
   },
   precipitation: {
     color: "#0284c7",
     floorAtZero: true,
     label: "precipitation",
-    unit: "mm"
+    unit: "precipitation"
   },
   precipitationProbability: {
     color: "#7c3aed",
     floorAtZero: true,
     label: "precipitation probability",
-    unit: "%"
+    unit: "percent"
   },
   windMax: {
     color: "#b45309",
     floorAtZero: true,
     label: "maximum wind",
-    unit: "km/h"
+    unit: "wind"
   }
 };
 
@@ -53,7 +55,8 @@ export function drawWeatherChart(
   canvas: HTMLCanvasElement,
   days: WeatherDay[],
   language: Language,
-  metric: ChartMetricKey
+  metric: ChartMetricKey,
+  units: UnitSystem = "metric"
 ): void {
   const context = canvas.getContext("2d");
   if (!context) {
@@ -72,7 +75,7 @@ export function drawWeatherChart(
 
   const padding = { top: 24, right: 24, bottom: 52, left: 64 };
   const values = days
-    .map((day) => day[metric])
+    .map((day) => normalizeChartValue(day[metric], metric, units))
     .filter((value): value is number => typeof value === "number" && Number.isFinite(value));
 
   context.clearRect(0, 0, width, height);
@@ -98,13 +101,13 @@ export function drawWeatherChart(
     context.moveTo(padding.left, y);
     context.lineTo(width - padding.right, y);
     context.stroke();
-    context.fillText(formatAxisValue(value, config.unit), 12, y + 4);
+    context.fillText(formatAxisValue(value, config.unit, units), 12, y + 4);
   }
 
   context.beginPath();
   let hasStartedLine = false;
   days.forEach((day, index) => {
-    const value = day[metric];
+    const value = normalizeChartValue(day[metric], metric, units);
 
     if (typeof value !== "number" || !Number.isFinite(value)) {
       return;
@@ -124,7 +127,7 @@ export function drawWeatherChart(
   context.stroke();
 
   days.forEach((day, index) => {
-    const value = day[metric];
+    const value = normalizeChartValue(day[metric], metric, units);
 
     if (typeof value !== "number" || !Number.isFinite(value)) {
       return;
@@ -145,14 +148,11 @@ export function getChartMetricLabel(metric: ChartMetricKey): string {
   return chartMetricConfig[metric].label;
 }
 
-function getValueRange(
-  values: number[],
-  config: Pick<ChartMetricConfig, "floorAtZero" | "unit">
-): { max: number; min: number } {
+function getValueRange(values: number[], config: Pick<ChartMetricConfig, "floorAtZero" | "unit">) {
   const minValue = Math.min(...values);
   const maxValue = Math.max(...values);
 
-  if (config.unit === "%") {
+  if (config.unit === "percent") {
     return { min: 0, max: 100 };
   }
 
@@ -194,6 +194,50 @@ function getPointPosition(
   };
 }
 
-function formatAxisValue(value: number, unit: string): string {
-  return `${Math.round(value)} ${unit}`;
+function formatAxisValue(
+  value: number,
+  unit: ChartMetricConfig["unit"],
+  units: UnitSystem
+): string {
+  if (unit === "temperature") {
+    return `${Math.round(value)} ${units === "imperial" ? "°F" : "°C"}`;
+  }
+
+  if (unit === "precipitation") {
+    return `${Math.round(value)} ${units === "imperial" ? "in" : "mm"}`;
+  }
+
+  if (unit === "wind") {
+    return `${Math.round(value)} ${units === "imperial" ? "mph" : "km/h"}`;
+  }
+
+  return `${Math.round(value)} %`;
+}
+
+function normalizeChartValue(
+  value: number | null | undefined,
+  metric: ChartMetricKey,
+  units: UnitSystem
+): number | null | undefined {
+  if (typeof value !== "number" || !Number.isFinite(value) || units === "metric") {
+    return value;
+  }
+
+  if (
+    metric === "temperatureMax" ||
+    metric === "temperatureMin" ||
+    metric === "apparentTemperatureMax"
+  ) {
+    return convertTemperature(value);
+  }
+
+  if (metric === "precipitation") {
+    return convertPrecipitation(value);
+  }
+
+  if (metric === "windMax") {
+    return convertWind(value);
+  }
+
+  return value;
 }

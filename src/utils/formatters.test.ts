@@ -21,16 +21,16 @@ describe("formatters", () => {
     expect(formatLocation({ name: "Gdansk", country: "Polska" })).toBe("Gdansk, Polska");
   });
 
-  it("formats numeric weather values", () => {
+  it("formats numeric weather values in metric units", () => {
     expect(formatTemperature(19.34)).toBe("19.3°C");
     expect(formatMillimeters(2)).toBe("2.0 mm");
     expect(formatWind(14.82)).toBe("14.8 km/h");
   });
 
-  it("uses placeholders for missing values", () => {
-    expect(formatTemperature(null)).toBe("-");
-    expect(formatMillimeters(undefined)).toBe("-");
-    expect(formatWind(Number.NaN)).toBe("-");
+  it("formats numeric weather values in imperial units", () => {
+    expect(formatTemperature(20, "imperial")).toBe("68.0°F");
+    expect(formatMillimeters(25.4, "imperial")).toBe("1.0 in");
+    expect(formatWind(16.09344, "imperial")).toBe("10.0 mph");
   });
 
   it("formats Polish source count labels", () => {

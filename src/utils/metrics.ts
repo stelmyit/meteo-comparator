@@ -2,6 +2,7 @@ import { formatMillimeters, formatPercent, formatTemperature, formatWind } from 
 import type { Translations } from "../i18n.js";
 import type { ChartMetricKey } from "../types/chart.js";
 import type { WeatherDay } from "../types/weather.js";
+import type { UnitSystem } from "./units.js";
 
 export function getMetricLabel(metric: ChartMetricKey, t: Translations): string {
   const labels: Record<ChartMetricKey, string> = {
@@ -29,11 +30,15 @@ export function getMetricDetail(metric: ChartMetricKey, t: Translations): string
   return details[metric];
 }
 
-export function formatMetricValue(metric: ChartMetricKey, day: Partial<WeatherDay>): string {
+export function formatMetricValue(
+  metric: ChartMetricKey,
+  day: Partial<WeatherDay>,
+  units: UnitSystem = "metric"
+): string {
   const value = day[metric];
 
   if (metric === "precipitation") {
-    return formatMillimeters(value);
+    return formatMillimeters(value, units);
   }
 
   if (metric === "precipitationProbability") {
@@ -41,8 +46,8 @@ export function formatMetricValue(metric: ChartMetricKey, day: Partial<WeatherDa
   }
 
   if (metric === "windMax") {
-    return formatWind(value);
+    return formatWind(value, units);
   }
 
-  return formatTemperature(value);
+  return formatTemperature(value, units);
 }

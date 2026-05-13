@@ -7,12 +7,12 @@ describe("export utils", () => {
   it("builds csv rows for the selected metrics and day", () => {
     const forecast = createForecast();
 
-    const csv = buildForecastCsv(forecast, ["temperatureMax", "windMax"], "2026-05-12");
+    const csv = buildForecastCsv(forecast, ["temperatureMax", "windMax"], "2026-05-12", "metric");
 
     expect(csv).toContain(
-      "date,sourceId,sourceName,locationLabel,temperatureMax,windMax,weatherCode"
+      "date,sourceId,sourceName,locationLabel,units,temperatureMax,windMax,weatherCode"
     );
-    expect(csv).toContain("2026-05-12,open-meteo,Open-Meteo,Warszawa,22,11,1");
+    expect(csv).toContain("2026-05-12,open-meteo,Open-Meteo,Warszawa,metric,22,11,1");
     expect(csv).not.toContain("2026-05-11,open-meteo");
   });
 
@@ -21,16 +21,34 @@ describe("export utils", () => {
     vi.setSystemTime(new Date("2026-05-12T09:30:00Z"));
 
     const forecast = createForecast();
-    const payload = buildForecastExportPayload(forecast, ["temperatureMax"], "");
+    const payload = buildForecastExportPayload(forecast, ["temperatureMax"], "", "imperial");
 
     expect(payload).toMatchObject({
       exportedAt: "2026-05-12T09:30:00.000Z",
       location: forecast.location,
-      metrics: ["temperatureMax"]
+      metrics: ["temperatureMax"],
+      units: "imperial"
     });
     expect(getExportFileBaseName(forecast, "2026-05-12")).toBe("forecast-warszawa-2026-05-12");
 
     vi.useRealTimers();
+  });
+
+  it("converts exported values and escapes csv fields in imperial mode", () => {
+    const forecast = {
+      ...createForecast(),
+      location: { label: "New York, NY", latitude: 40.7, longitude: -74 }
+    };
+
+    const csv = buildForecastCsv(
+      forecast,
+      ["temperatureMax", "precipitation", "windMax"],
+      "2026-05-11",
+      "imperial"
+    );
+
+    expect(csv).toContain('"New York, NY"');
+    expect(csv).toContain("imperial,68,0.08,4.97,61");
   });
 });
 

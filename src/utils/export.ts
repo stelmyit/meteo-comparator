@@ -1,6 +1,8 @@
 import { chartMetricKeys } from "../types/chart.js";
 import type { ChartMetricKey } from "../types/chart.js";
 import type { ForecastComparison, WeatherDay } from "../types/weather.js";
+import { convertPrecipitation, convertTemperature, convertWind } from "./units.js";
+import type { UnitSystem } from "./units.js";
 
 const exportMetricLabels: Record<ChartMetricKey, string> = {
   apparentTemperatureMax: "apparentTemperatureMax",
@@ -14,7 +16,8 @@ const exportMetricLabels: Record<ChartMetricKey, string> = {
 export function buildForecastCsv(
   forecast: ForecastComparison,
   metrics: ChartMetricKey[],
-  selectedDay: string
+  selectedDay: string,
+  units: UnitSystem
 ): string {
   const rows = [
     [
@@ -22,6 +25,7 @@ export function buildForecastCsv(
       "sourceId",
       "sourceName",
       "locationLabel",
+      "units",
       ...metrics.map((metric) => exportMetricLabels[metric]),
       "weatherCode"
     ]
@@ -38,7 +42,8 @@ export function buildForecastCsv(
         source.id,
         source.name,
         forecast.location.label,
-        ...metrics.map((metric) => formatMetricValue(day, metric)),
+        units,
+        ...metrics.map((metric) => formatMetricValue(day, metric, units)),
         typeof day.weatherCode === "number" ? String(day.weatherCode) : ""
       ]);
     }
@@ -50,19 +55,21 @@ export function buildForecastCsv(
 export function buildForecastExportPayload(
   forecast: ForecastComparison,
   metrics: ChartMetricKey[],
-  selectedDay: string
+  selectedDay: string,
+  units: UnitSystem
 ): Record<string, unknown> {
   return {
     exportedAt: new Date().toISOString(),
     location: forecast.location,
     selectedDay,
     metrics,
-    average: filterDays(forecast.average, selectedDay),
+    units,
+    average: filterDays(forecast.average, selectedDay).map((day) => pickMetrics(day, metrics, units)),
     sources: forecast.sources.map((source) => ({
       id: source.id,
       name: source.name,
       updatedAt: source.updatedAt,
-      days: filterDays(source.days, selectedDay).map((day) => pickMetrics(day, metrics))
+      days: filterDays(source.days, selectedDay).map((day) => pickMetrics(day, metrics, units))
     }))
   };
 }
@@ -83,11 +90,12 @@ function filterDays(days: WeatherDay[], selectedDay: string): WeatherDay[] {
 
 function pickMetrics(
   day: WeatherDay,
-  metrics: ChartMetricKey[]
-): Partial<WeatherDay> & Pick<WeatherDay, "date" | "weatherCode"> {
-  const picked: Partial<WeatherDay> & Pick<WeatherDay, "date" | "weatherCode"> = {
+  metrics: ChartMetricKey[],
+  units: UnitSystem
+): Record<string, number | string> {
+  const picked: Record<string, number | string> = {
     date: day.date,
-    weatherCode: day.weatherCode
+    weatherCode: day.weatherCode ?? ""
   };
 
   for (const metric of chartMetricKeys) {
@@ -95,15 +103,43 @@ function pickMetrics(
       continue;
     }
 
-    picked[metric] = day[metric];
+    picked[metric] = normalizeValue(day[metric], metric, units) ?? "";
   }
 
   return picked;
 }
 
-function formatMetricValue(day: WeatherDay, metric: ChartMetricKey): string {
-  const value = day[metric];
-  return typeof value === "number" ? String(value) : "";
+function formatMetricValue(day: WeatherDay, metric: ChartMetricKey, units: UnitSystem): string {
+  const value = normalizeValue(day[metric], metric, units);
+  return typeof value === "number" ? String(Number(value.toFixed(2))) : "";
+}
+
+function normalizeValue(
+  value: number | null | undefined,
+  metric: ChartMetricKey,
+  units: UnitSystem
+) {
+  if (typeof value !== "number" || !Number.isFinite(value) || units === "metric") {
+    return value;
+  }
+
+  if (
+    metric === "temperatureMax" ||
+    metric === "temperatureMin" ||
+    metric === "apparentTemperatureMax"
+  ) {
+    return convertTemperature(value);
+  }
+
+  if (metric === "precipitation") {
+    return convertPrecipitation(value);
+  }
+
+  if (metric === "windMax") {
+    return convertWind(value);
+  }
+
+  return value;
 }
 
 function escapeCsvValue(value: string): string {

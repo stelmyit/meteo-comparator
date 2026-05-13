@@ -3,11 +3,11 @@ import { describe, expect, it } from "vitest";
 import { readUrlState, writeUrlState } from "./urlState.js";
 
 describe("urlState", () => {
-  it("reads language, query and selected location from URL", () => {
+  it("reads language, query, units and selected location from URL", () => {
     window.history.replaceState(
       {},
       "",
-      "/?lang=en&q=Gdansk&day=2026-05-12&metric=windMax&lat=54.35&lon=18.65&label=Gdansk%2C%20Poland"
+      "/?lang=en&q=Gdansk&day=2026-05-12&metric=windMax&units=imperial&lat=54.35&lon=18.65&label=Gdansk%2C%20Poland"
     );
 
     expect(readUrlState()).toEqual({
@@ -29,7 +29,8 @@ describe("urlState", () => {
         latitude: 54.35,
         longitude: 18.65
       },
-      sourceIds: null
+      sourceIds: null,
+      units: "imperial"
     });
   });
 
@@ -41,10 +42,11 @@ describe("urlState", () => {
       day: "2026-05-11",
       metric: "precipitationProbability",
       query: "Warszawa",
+      units: "metric",
       location: {
         id: 1,
         name: "Warszawa",
-        admin1: "Województwo mazowieckie",
+        admin1: "Wojewodztwo mazowieckie",
         country: "Polska",
         latitude: 52.22977,
         longitude: 21.01178
@@ -57,8 +59,9 @@ describe("urlState", () => {
     expect(params.get("q")).toBe("Warszawa");
     expect(params.get("day")).toBe("2026-05-11");
     expect(params.get("metric")).toBe("precipitationProbability");
+    expect(params.get("units")).toBe("metric");
     expect(params.get("lat")).toBe("52.22977");
     expect(params.get("lon")).toBe("21.01178");
-    expect(params.get("label")).toBe("Warszawa, Województwo mazowieckie, Polska");
+    expect(params.get("label")).toBe("Warszawa, Wojewodztwo mazowieckie, Polska");
   });
 });

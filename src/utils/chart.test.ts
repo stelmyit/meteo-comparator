@@ -49,6 +49,38 @@ describe("drawWeatherChart", () => {
     expect(context.lineTo).toHaveBeenCalled();
     expect(context.arc).toHaveBeenCalledTimes(2);
   });
+
+  it("formats imperial axes for converted values", () => {
+    const canvas = document.createElement("canvas");
+    Object.defineProperty(canvas, "clientWidth", { configurable: true, value: 700 });
+    const context = canvasContext();
+    vi.spyOn(canvas, "getContext").mockReturnValue(context);
+
+    drawWeatherChart(
+      canvas,
+      [day("2026-05-11", { windMax: 16.09344 }), day("2026-05-12", { windMax: 32.18688 })],
+      "en",
+      "windMax",
+      "imperial"
+    );
+
+    expect(context.fillText).toHaveBeenCalledWith(expect.stringContaining("mph"), 12, expect.any(Number));
+  });
+
+  it("handles flat temperature ranges without crashing", () => {
+    const canvas = document.createElement("canvas");
+    const context = canvasContext();
+    vi.spyOn(canvas, "getContext").mockReturnValue(context);
+
+    expect(() =>
+      drawWeatherChart(
+        canvas,
+        [day("2026-05-11", { temperatureMax: 20 }), day("2026-05-12", { temperatureMax: 20 })],
+        "pl",
+        "temperatureMax"
+      )
+    ).not.toThrow();
+  });
 });
 
 function canvasContext() {

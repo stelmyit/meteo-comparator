@@ -1,5 +1,7 @@
 import type { Language } from "../i18n.js";
 import type { LocationResult } from "../types/weather.js";
+import { convertPrecipitation, convertTemperature, convertWind } from "./units.js";
+import type { UnitSystem } from "./units.js";
 
 export function formatLocation(
   location: Pick<LocationResult, "name" | "admin1" | "country">
@@ -7,20 +9,44 @@ export function formatLocation(
   return [location.name, location.admin1, location.country].filter(Boolean).join(", ");
 }
 
-export function formatTemperature(value: number | null | undefined): string {
-  return typeof value === "number" && Number.isFinite(value) ? `${value.toFixed(1)}°C` : "-";
+export function formatTemperature(
+  value: number | null | undefined,
+  units: UnitSystem = "metric"
+): string {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return "-";
+  }
+
+  const nextValue = units === "imperial" ? convertTemperature(value) : value;
+  return `${nextValue.toFixed(1)}${units === "imperial" ? "°F" : "°C"}`;
 }
 
-export function formatMillimeters(value: number | null | undefined): string {
-  return typeof value === "number" && Number.isFinite(value) ? `${value.toFixed(1)} mm` : "-";
+export function formatMillimeters(
+  value: number | null | undefined,
+  units: UnitSystem = "metric"
+): string {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return "-";
+  }
+
+  const nextValue = units === "imperial" ? convertPrecipitation(value) : value;
+  return `${nextValue.toFixed(1)} ${units === "imperial" ? "in" : "mm"}`;
 }
 
 export function formatPercent(value: number | null | undefined): string {
   return typeof value === "number" && Number.isFinite(value) ? `${value.toFixed(0)}%` : "-";
 }
 
-export function formatWind(value: number | null | undefined): string {
-  return typeof value === "number" && Number.isFinite(value) ? `${value.toFixed(1)} km/h` : "-";
+export function formatWind(
+  value: number | null | undefined,
+  units: UnitSystem = "metric"
+): string {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return "-";
+  }
+
+  const nextValue = units === "imperial" ? convertWind(value) : value;
+  return `${nextValue.toFixed(1)} ${units === "imperial" ? "mph" : "km/h"}`;
 }
 
 export function formatSourceCount(count: number, language: Language): string {

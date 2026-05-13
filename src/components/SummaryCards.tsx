@@ -4,15 +4,17 @@ import { formatMetricValue, getMetricDetail, getMetricLabel } from "../utils/met
 import type { Language, Translations } from "../i18n.js";
 import type { ChartMetricKey } from "../types/chart.js";
 import type { WeatherDay } from "../types/weather.js";
+import type { UnitSystem } from "../utils/units.js";
 
 type SummaryCardsProps = {
   days: WeatherDay[];
   language: Language;
   metrics: ChartMetricKey[];
   t: Translations;
+  units: UnitSystem;
 };
 
-export function SummaryCards({ days, language, metrics, t }: SummaryCardsProps) {
+export function SummaryCards({ days, language, metrics, t, units }: SummaryCardsProps) {
   const today: Partial<WeatherDay> = days[0] ?? {};
   const conditionLabel = formatWeatherCondition(today.weatherCode, language);
 
@@ -29,7 +31,7 @@ export function SummaryCards({ days, language, metrics, t }: SummaryCardsProps) 
       {metrics.map((metric) => (
         <article className="metric-card" key={metric}>
           <div className="metric-label">{getMetricLabel(metric, t)}</div>
-          <div className="metric-value">{formatMetricValue(metric, today)}</div>
+          <div className="metric-value">{formatMetricValue(metric, today, units)}</div>
           <div className="metric-detail">{getMetricDetail(metric, t)}</div>
         </article>
       ))}

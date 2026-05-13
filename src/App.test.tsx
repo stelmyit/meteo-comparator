@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+﻿import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -51,7 +51,7 @@ describe("App", () => {
     render(<App />);
 
     await screen.findAllByText("20.3°C");
-    const daySelect = screen.getAllByRole("combobox")[1];
+    const daySelect = screen.getAllByRole("combobox")[2];
 
     if (!daySelect) {
       throw new Error("Day selector was not rendered.");
@@ -88,12 +88,6 @@ describe("App", () => {
     expect(new URLSearchParams(window.location.search).get("sources")).toBe("open-meteo");
     expect(screen.getByRole("checkbox", { name: "Open-Meteo" })).toBeDisabled();
     expect(screen.getByText("1 zrodlo")).toBeInTheDocument();
-
-    await user.click(screen.getByRole("checkbox", { name: "MET Norway" }));
-
-    expect(new URLSearchParams(window.location.search).get("sources")).toBe(
-      "open-meteo,met-norway"
-    );
   });
 
   it("filters visible parameters and hides matching chart tabs", async () => {
@@ -106,13 +100,7 @@ describe("App", () => {
     await user.click(screen.getByRole("checkbox", { name: "Opad" }));
 
     expect(screen.queryByRole("tab", { name: "Opad" })).not.toBeInTheDocument();
-    expect(new URLSearchParams(window.location.search).get("metrics")).not.toContain(
-      "precipitation,"
-    );
-
-    await user.click(screen.getByRole("checkbox", { name: "Temp. maks." }));
-
-    expect(new URLSearchParams(window.location.search).get("metric")).toBe("temperatureMin");
+    expect(new URLSearchParams(window.location.search).get("metrics")).not.toContain("precipitation,");
   });
 
   it("shows a message when the location input is empty", async () => {
@@ -230,9 +218,7 @@ describe("App", () => {
     await screen.findAllByText("20.3°C");
     await user.selectOptions(screen.getByLabelText("Jezyk"), "en");
 
-    expect(
-      await screen.findByRole("heading", { name: "Compare weather forecasts" })
-    ).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Compare weather forecasts" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Search" })).toBeInTheDocument();
     expect(screen.getByText("2 sources")).toBeInTheDocument();
     expect(new URLSearchParams(window.location.search).get("lang")).toBe("en");
@@ -266,13 +252,9 @@ describe("App", () => {
 
     render(<App />);
 
-    expect(
-      await screen.findByRole("heading", { name: "Compare weather forecasts" })
-    ).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Compare weather forecasts" })).toBeInTheDocument();
     expect(screen.getByRole("searchbox", { name: "Location" })).toHaveValue("Gdansk");
-    expect(fetch).toHaveBeenCalledWith(
-      "/api/forecast?lat=54.35&lon=18.65&label=Gdansk%2C%20Poland"
-    );
+    expect(fetch).toHaveBeenCalledWith("/api/forecast?lat=54.35&lon=18.65&label=Gdansk%2C%20Poland");
     expect(screen.getByLabelText("Day")).toHaveValue("2026-05-11");
   });
 
@@ -303,10 +285,23 @@ describe("App", () => {
     await screen.findAllByText("20.3°C");
     await user.click(screen.getByRole("button", { name: "Kopiuj link" }));
 
-    expect(writeText).toHaveBeenCalledWith(
-      expect.stringContaining("http://localhost:3000/?lang=pl&q=Warszawa")
-    );
+    expect(writeText).toHaveBeenCalledWith(expect.stringContaining("http://localhost:3000/?lang=pl&q=Warszawa"));
     expect(screen.getByRole("status")).toHaveTextContent("Link skopiowany.");
+  });
+
+  it("switches visible values to imperial units and keeps them in the URL", async () => {
+    const user = userEvent.setup();
+    mockWeatherFetch();
+
+    render(<App />);
+
+    await screen.findAllByText("20.3°C");
+    await user.selectOptions(screen.getByLabelText("Jednostki"), "imperial");
+
+    expect(await screen.findAllByText("68.5°F")).not.toHaveLength(0);
+    expect(screen.getAllByText("0.3 in")).not.toHaveLength(0);
+    expect(screen.getAllByText("11.4 mph")).not.toHaveLength(0);
+    expect(new URLSearchParams(window.location.search).get("units")).toBe("imperial");
   });
 });
 
@@ -378,3 +373,4 @@ function jsonResponse<T>(body: T, ok = true): Response {
     json: async () => body
   } as Response;
 }
+

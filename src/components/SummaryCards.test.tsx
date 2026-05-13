@@ -5,12 +5,9 @@ import { SummaryCards } from "./SummaryCards.jsx";
 import { translations } from "../i18n.js";
 
 describe("SummaryCards", () => {
-  it("renders averaged values for the first forecast day", () => {
+  it("renders averaged values for the first forecast day in metric units", () => {
     render(
       <SummaryCards
-        language="pl"
-        metrics={["temperatureMax", "temperatureMin", "precipitation", "windMax"]}
-        t={translations.pl}
         days={[
           {
             apparentTemperatureMax: 21.32,
@@ -24,6 +21,10 @@ describe("SummaryCards", () => {
             windMax: 18.44
           }
         ]}
+        language="pl"
+        metrics={["temperatureMax", "temperatureMin", "precipitation", "windMax"]}
+        t={translations.pl}
+        units="metric"
       />
     );
 
@@ -33,16 +34,31 @@ describe("SummaryCards", () => {
     expect(screen.getByText("18.4 km/h")).toBeInTheDocument();
   });
 
-  it("renders placeholders when there is no forecast day yet", () => {
+  it("renders imperial values when selected", () => {
     render(
       <SummaryCards
-        days={[]}
+        days={[
+          {
+            apparentTemperatureMax: 21.32,
+            apparentTemperatureMin: 10.12,
+            date: "2026-05-11",
+            temperatureMax: 20,
+            temperatureMin: 10,
+            precipitation: 25.4,
+            precipitationProbability: 50,
+            weatherCode: 61,
+            windMax: 16.09344
+          }
+        ]}
         language="en"
-        metrics={["temperatureMax", "temperatureMin", "precipitation", "windMax"]}
+        metrics={["temperatureMax", "precipitation", "windMax"]}
         t={translations.en}
+        units="imperial"
       />
     );
 
-    expect(screen.getAllByText("-")).toHaveLength(4);
+    expect(screen.getByText("68.0°F")).toBeInTheDocument();
+    expect(screen.getByText("1.0 in")).toBeInTheDocument();
+    expect(screen.getByText("10.0 mph")).toBeInTheDocument();
   });
 });

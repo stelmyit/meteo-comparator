@@ -9,9 +9,6 @@ describe("ForecastTable", () => {
   it("renders average and source rows", () => {
     render(
       <ForecastTable
-        language="pl"
-        metrics={["temperatureMax", "temperatureMin", "precipitation", "windMax"]}
-        t={translations.pl}
         forecast={{
           location: { label: "Warszawa", latitude: 52.2, longitude: 21 },
           generatedAt: "2026-05-11T10:00:00Z",
@@ -26,34 +23,42 @@ describe("ForecastTable", () => {
             }
           ]
         }}
+        language="pl"
+        metrics={["temperatureMax", "temperatureMin", "precipitation", "windMax"]}
+        t={translations.pl}
+        units="metric"
       />
     );
 
     expect(screen.getByRole("heading", { name: "Porownanie zrodel" })).toBeInTheDocument();
-    expect(screen.getByText("Średnia")).toBeInTheDocument();
+    expect(screen.getByText("Srednia")).toBeInTheDocument();
     expect(screen.getByText("Open-Meteo")).toBeInTheDocument();
     expect(screen.getByText("21.0°C")).toBeInTheDocument();
     expect(screen.getByText("11.0°C")).toBeInTheDocument();
   });
 
-  it("renders English labels when selected", () => {
+  it("renders imperial values when selected", () => {
     render(
       <ForecastTable
-        language="en"
-        metrics={["temperatureMax", "temperatureMin", "precipitation", "windMax"]}
-        t={translations.en}
         forecast={{
           location: { label: "Warsaw", latitude: 52.2, longitude: 21 },
           generatedAt: "2026-05-11T10:00:00Z",
           failedSources: [],
-          average: [day("2026-05-11", 20, 10, 1, 12)],
+          average: [day("2026-05-11", 20, 10, 25.4, 16.09344)],
           sources: []
         }}
+        language="en"
+        metrics={["temperatureMax", "precipitation", "windMax"]}
+        t={translations.en}
+        units="imperial"
       />
     );
 
     expect(screen.getByRole("heading", { name: "Source comparison" })).toBeInTheDocument();
     expect(screen.getByText("Average")).toBeInTheDocument();
+    expect(screen.getByText("68.0°F")).toBeInTheDocument();
+    expect(screen.getByText("1.0 in")).toBeInTheDocument();
+    expect(screen.getByText("10.0 mph")).toBeInTheDocument();
   });
 });
 

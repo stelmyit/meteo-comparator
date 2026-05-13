@@ -2,6 +2,7 @@ import type { Language } from "../i18n.js";
 import { chartMetricKeys, isChartMetricKey } from "../types/chart.js";
 import type { ChartMetricKey } from "../types/chart.js";
 import type { LocationResult } from "../types/weather.js";
+import type { UnitSystem } from "./units.js";
 
 export type UrlState = {
   day: string;
@@ -11,6 +12,7 @@ export type UrlState = {
   query: string;
   selectedLocation: LocationResult | null;
   sourceIds: string[] | null;
+  units: UnitSystem;
 };
 
 const defaultQuery = "Warszawa";
@@ -27,6 +29,7 @@ export function readUrlState(): UrlState {
   const metric = params.get("metric");
   const metrics = parseMetrics(params.get("metrics"));
   const sourceIds = params.has("sources") ? parseList(params.get("sources")) : null;
+  const units = params.get("units") === "imperial" ? "imperial" : "metric";
 
   return {
     day,
@@ -43,7 +46,8 @@ export function readUrlState(): UrlState {
             longitude
           }
         : null,
-    sourceIds
+    sourceIds,
+    units
   };
 }
 
@@ -53,6 +57,7 @@ export function writeUrlState({
   metric,
   metrics,
   sourceIds,
+  units,
   day,
   query
 }: {
@@ -63,11 +68,13 @@ export function writeUrlState({
   metrics?: ChartMetricKey[];
   query: string;
   sourceIds?: string[] | null;
+  units?: UnitSystem;
 }): void {
   const url = new URL(window.location.href);
   url.searchParams.set("lang", language);
   url.searchParams.set("q", query.trim() || defaultQuery);
   url.searchParams.set("metric", metric ?? defaultMetric);
+  url.searchParams.set("units", units ?? "metric");
   writeListParam(url, "metrics", metrics ?? [...chartMetricKeys]);
   writeListParam(url, "sources", sourceIds);
 

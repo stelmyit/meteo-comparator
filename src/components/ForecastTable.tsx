@@ -5,12 +5,14 @@ import { formatWeatherCondition } from "../utils/weatherCondition.js";
 import type { Language, Translations } from "../i18n.js";
 import type { ChartMetricKey } from "../types/chart.js";
 import type { ForecastComparison, WeatherDay } from "../types/weather.js";
+import type { UnitSystem } from "../utils/units.js";
 
 type ForecastTableProps = {
   forecast: ForecastComparison;
   language: Language;
   metrics: ChartMetricKey[];
   t: Translations;
+  units: UnitSystem;
 };
 
 type SourceRowProps = {
@@ -20,9 +22,10 @@ type SourceRowProps = {
   name: string;
   source?: boolean;
   t: Translations;
+  units: UnitSystem;
 };
 
-export function ForecastTable({ forecast, language, metrics, t }: ForecastTableProps) {
+export function ForecastTable({ forecast, language, metrics, t, units }: ForecastTableProps) {
   const days = forecast.average.map((day) => day.date);
 
   return (
@@ -48,8 +51,9 @@ export function ForecastTable({ forecast, language, metrics, t }: ForecastTableP
               days={forecast.average}
               language={language}
               metrics={metrics}
-              name={language === "pl" ? "Średnia" : "Average"}
+              name={language === "pl" ? "Srednia" : "Average"}
               t={t}
+              units={units}
             />
             {forecast.sources.map((source) => (
               <SourceRow
@@ -60,6 +64,7 @@ export function ForecastTable({ forecast, language, metrics, t }: ForecastTableP
                 name={source.name}
                 source
                 t={t}
+                units={units}
               />
             ))}
           </tbody>
@@ -69,7 +74,7 @@ export function ForecastTable({ forecast, language, metrics, t }: ForecastTableP
   );
 }
 
-function SourceRow({ days, language, metrics, name, source = false, t }: SourceRowProps) {
+function SourceRow({ days, language, metrics, name, source = false, t, units }: SourceRowProps) {
   return (
     <tr>
       <td className={source ? "source-name" : undefined}>{name}</td>
@@ -85,7 +90,7 @@ function SourceRow({ days, language, metrics, name, source = false, t }: SourceR
             {metrics.map((metric) => (
               <div className="table-metric" key={metric}>
                 <span>{getMetricLabel(metric, t)}</span>
-                <strong>{formatMetricValue(metric, day)}</strong>
+                <strong>{formatMetricValue(metric, day, units)}</strong>
               </div>
             ))}
           </td>

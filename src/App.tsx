@@ -37,6 +37,7 @@ import type { Language } from "./i18n.js";
 import type { ChartMetricKey } from "./types/chart.js";
 import type { ForecastComparison, LocationResult } from "./types/weather.js";
 import type { StoredLocation } from "./utils/locations.js";
+import type { UnitSystem } from "./utils/units.js";
 
 export function App() {
   const initialUrlState = useRef(readUrlState());
@@ -61,6 +62,7 @@ export function App() {
   const [savedLocations, setSavedLocations] = useState(() => readSavedLocations());
   const [recentLocations, setRecentLocations] = useState(() => readRecentLocations());
   const [status, setStatus] = useState(getInitialStatus(language));
+  const [units, setUnits] = useState<UnitSystem>(initialUrlState.current.units);
 
   const loadForecast = useCallback(
     async (location: LocationResult, options: { nextQuery?: string; syncUrl?: boolean } = {}) => {
@@ -75,7 +77,8 @@ export function App() {
           metric: selectedMetric,
           metrics: selectedMetrics,
           query: nextQuery,
-          sourceIds: selectedSourceIds
+          sourceIds: selectedSourceIds,
+          units
         });
       }
 
@@ -101,7 +104,7 @@ export function App() {
         setStatus(error instanceof Error ? error.message : t.noForecastError);
       }
     },
-    [language, query, selectedDay, selectedMetric, selectedMetrics, selectedSourceIds, t]
+    [language, query, selectedDay, selectedMetric, selectedMetrics, selectedSourceIds, t, units]
   );
 
   const searchForLocations = useCallback(
@@ -122,7 +125,8 @@ export function App() {
         metric: selectedMetric,
         metrics: selectedMetrics,
         query: cleaned,
-        sourceIds: selectedSourceIds
+        sourceIds: selectedSourceIds,
+        units
       });
 
       try {
@@ -144,7 +148,7 @@ export function App() {
         setStatus(error instanceof Error ? error.message : t.noLocationError);
       }
     },
-    [language, loadForecast, selectedDay, selectedMetric, selectedMetrics, selectedSourceIds, t]
+    [language, loadForecast, selectedDay, selectedMetric, selectedMetrics, selectedSourceIds, t, units]
   );
 
   useEffect(() => {
@@ -196,7 +200,8 @@ export function App() {
         : null,
       day: selectedDay,
       query,
-      sourceIds: selectedSourceIds
+      sourceIds: selectedSourceIds,
+      units
     });
     setStatus((currentStatus) =>
       currentStatus === getInitialStatus(language) ? getInitialStatus(nextLanguage) : currentStatus
@@ -220,7 +225,8 @@ export function App() {
           }
         : null,
       query,
-      sourceIds: selectedSourceIds
+      sourceIds: selectedSourceIds,
+      units
     });
   }
 
@@ -240,7 +246,8 @@ export function App() {
           }
         : null,
       query,
-      sourceIds: selectedSourceIds
+      sourceIds: selectedSourceIds,
+      units
     });
   }
 
@@ -265,7 +272,8 @@ export function App() {
       metrics: nextMetrics,
       location: currentForecastLocation(forecast),
       query,
-      sourceIds: selectedSourceIds
+      sourceIds: selectedSourceIds,
+      units
     });
   }
 
@@ -291,7 +299,23 @@ export function App() {
       metrics: selectedMetrics,
       location: currentForecastLocation(forecast),
       query,
-      sourceIds: nextSourceIds
+      sourceIds: nextSourceIds,
+      units
+    });
+  }
+
+  function handleUnitsChange(event: React.ChangeEvent<HTMLSelectElement>) {
+    const nextUnits = event.target.value as UnitSystem;
+    setUnits(nextUnits);
+    writeUrlState({
+      day: selectedDay,
+      language,
+      location: currentForecastLocation(forecast),
+      metric: selectedMetric,
+      metrics: selectedMetrics,
+      query,
+      sourceIds: selectedSourceIds,
+      units: nextUnits
     });
   }
 
@@ -327,7 +351,7 @@ export function App() {
     }
 
     downloadTextFile(
-      buildForecastCsv(visibleForecast, selectedMetrics, selectedDay),
+      buildForecastCsv(visibleForecast, selectedMetrics, selectedDay, units),
       `${getExportFileBaseName(visibleForecast, selectedDay)}.csv`,
       "text/csv;charset=utf-8"
     );
@@ -340,7 +364,7 @@ export function App() {
 
     downloadTextFile(
       JSON.stringify(
-        buildForecastExportPayload(visibleForecast, selectedMetrics, selectedDay),
+        buildForecastExportPayload(visibleForecast, selectedMetrics, selectedDay, units),
         null,
         2
       ),
@@ -384,6 +408,13 @@ export function App() {
                   {option.label}
                 </option>
               ))}
+            </select>
+          </label>
+          <label className="language-select">
+            <span>{t.metricSystem}</span>
+            <select value={units} onChange={handleUnitsChange}>
+              <option value="metric">{t.metricUnits}</option>
+              <option value="imperial">{t.imperial}</option>
             </select>
           </label>
           <form className="search" onSubmit={handleSubmit}>
@@ -471,6 +502,7 @@ export function App() {
             language={language}
             metrics={selectedMetrics}
             t={t}
+            units={units}
           />
           <ForecastInsights
             forecast={visibleForecast}
@@ -507,6 +539,7 @@ export function App() {
               days={visibleForecast.average}
               language={language}
               metric={selectedMetric}
+              units={units}
             />
           </section>
           <ForecastTable
@@ -514,6 +547,7 @@ export function App() {
             language={language}
             metrics={selectedMetrics}
             t={t}
+            units={units}
           />
         </>
       ) : null}

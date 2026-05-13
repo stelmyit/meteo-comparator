@@ -22,8 +22,11 @@ export type Translations = {
   exportCsv: string;
   exportJson: string;
   forecastInsights: string;
+  imperial: string;
   language: string;
   location: string;
+  metricSystem: string;
+  metricUnits: string;
   max: string;
   maxTemperature: string;
   metricApparentTemperature: string;
@@ -80,8 +83,11 @@ export const translations: Record<Language, Translations> = {
     exportCsv: "Eksport CSV",
     exportJson: "Eksport JSON",
     forecastInsights: "Szybkie wnioski",
+    imperial: "Imperialne",
     language: "Jezyk",
     location: "Lokalizacja",
+    metricSystem: "Jednostki",
+    metricUnits: "Metryczne",
     max: "maksymalny",
     maxTemperature: "Temp. maks.",
     metricApparentTemperature: "Temp. odczuwalna",
@@ -136,8 +142,11 @@ export const translations: Record<Language, Translations> = {
     exportCsv: "Export CSV",
     exportJson: "Export JSON",
     forecastInsights: "Quick insights",
+    imperial: "Imperial",
     language: "Language",
     location: "Location",
+    metricSystem: "Units",
+    metricUnits: "Metric",
     max: "maximum",
     maxTemperature: "Max temp.",
     metricApparentTemperature: "Feels like",
